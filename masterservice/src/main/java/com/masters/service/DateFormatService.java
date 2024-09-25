@@ -2,6 +2,7 @@ package com.masters.service;
 
 import com.masters.entity.DateFormat;
 import com.masters.repository.DateFormatRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,9 @@ import java.util.Optional;
 public class DateFormatService {
     @Autowired
     private DateFormatRepository dateFormatRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     public List<DateFormat> getAllDateFormats() {
         return dateFormatRepository.findAll();
@@ -35,6 +39,8 @@ public class DateFormatService {
         Optional<DateFormat> dateFormatRecord = dateFormatRepository.findById(id);
         if(dateFormatRecord.isPresent()){
             DateFormat format =  dateFormatRecord.get();
+            modelMapper.getConfiguration().setSkipNullEnabled(true);
+            modelMapper.map(record,format);
             dateFormatRepository.save(format);
 
         }

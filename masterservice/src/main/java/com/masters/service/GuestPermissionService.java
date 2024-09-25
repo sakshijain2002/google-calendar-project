@@ -2,6 +2,7 @@ package com.masters.service;
 
 import com.masters.entity.GuestPermission;
 import com.masters.repository.GuestPermissionRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,9 @@ import java.util.Optional;
 public class GuestPermissionService {
     @Autowired
     private GuestPermissionRepository guestPermissionRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     public List<GuestPermission> getAll(){
         return guestPermissionRepository.findAll();
@@ -32,6 +36,8 @@ public class GuestPermissionService {
         Optional<GuestPermission> permissionRecord = guestPermissionRepository.findById(id);
         if(permissionRecord.isPresent()){
             GuestPermission guestPermission =  permissionRecord.get();
+            modelMapper.getConfiguration().setSkipNullEnabled(true);
+            modelMapper.map(record,guestPermission);
             guestPermissionRepository.save(guestPermission);
 
         }

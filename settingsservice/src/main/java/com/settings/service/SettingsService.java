@@ -35,7 +35,9 @@ public class SettingsService {
         return settingsRepository.findById(id).orElseThrow(()->new RuntimeException("data not found exception"));
     }
 
-    public Settings createSettings(Settings settings){
+    public Settings createSettings(Settings settings,String token){
+        String email;
+        email= String.valueOf(userServiceClient.getEmailFromToken(token));
 
         return settingsRepository.save(settings);
     }

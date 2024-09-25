@@ -2,6 +2,7 @@ package com.masters.service;
 
 import com.masters.entity.TimeZone;
 import com.masters.repository.TimeZoneRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,9 @@ import java.util.Optional;
 public class TimeZoneService {
     @Autowired
     private TimeZoneRepository timeZoneRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     public List<TimeZone> getAllTimeZones(){
         return timeZoneRepository.findAll();
@@ -32,6 +36,8 @@ public class TimeZoneService {
         Optional<TimeZone> timeZoneRecord = timeZoneRepository.findById(id);
         if(timeZoneRecord.isPresent()){
            TimeZone timeZone =  timeZoneRecord.get();
+            modelMapper.getConfiguration().setSkipNullEnabled(true);
+            modelMapper.map(record,timeZone);
             timeZoneRepository.save(timeZone);
 
         }

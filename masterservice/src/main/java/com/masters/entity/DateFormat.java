@@ -17,7 +17,7 @@ public class DateFormat {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Integer id;
 
-    @Column(name = "format_pattern", nullable = false)
-    private String formatPattern;
+    @Column(name = "format", nullable = false)
+    private String format;
 
 }

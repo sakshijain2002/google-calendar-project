@@ -11,22 +11,45 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/task")
+@CrossOrigin
 public class TaskController {
-     @Autowired
-     private TaskService taskService;
+    @Autowired
+    private TaskService taskService;
+
     @GetMapping
-    public List<Task> getTask(){
-        return taskService.getAllTask();
+    public List<Task> getTask(@RequestHeader("Authorization") String token) {
+        return taskService.getAllTask(token);
     }
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Task>> getTasksByUserId(@PathVariable Integer userId) {
         List<Task> tasks = taskService.getTasksByUserId(userId);
         return ResponseEntity.ok(tasks);
     }
-      @PostMapping("/{id}/add/{userId}")
-      public String addTask(@PathVariable Long id,@RequestBody Task task,@PathVariable Integer userId){
-          return taskService.addTask(task,id,userId);
-      }
+    @GetMapping("/getAll/{email}")
+    public List<Task> getTasksEmail(@PathVariable String email) {
+       return taskService.getTasksByEmail(email);
+
+    }
+
+    @PostMapping("/{id}/add/{userId}")
+    public Task addTask(@PathVariable Long id, @RequestBody Task task, @PathVariable Integer userId) {
+        return taskService.addTask(task, id, userId);
+    }
+
+    @PutMapping("/addAllTasks/{email}")
+    public List<Task> addTasks(@RequestBody List<Task> tasks, @PathVariable String email) {
+        return taskService.addAllTasks(tasks,email);
+}
+//    @PutMapping("/addTask/{email}")
+//    public Task addTask(@RequestBody Task task,@PathVariable String email){
+//        return taskService.addTask(task,email);
+//    }
+    @PostMapping("/addTask")
+    public Task addTask(@RequestBody Task task, @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        return taskService.addTask(task,token);
+    }
       @PostMapping("/taskList")
       public String createTaskList(@RequestParam String name){
         taskService.createTaskList(name);
@@ -38,7 +61,7 @@ public class TaskController {
     }
 
       @DeleteMapping("/deleteTask/{id}/{taskListId}")
-      public void deleteTask(@PathVariable Integer id,@PathVariable Long taskListId){
+      public void deleteTask(@PathVariable Long id,@PathVariable Long taskListId){
            taskService.removeTaskFromTaskList(id,taskListId);
       }
 
@@ -47,22 +70,31 @@ public class TaskController {
         return taskService.deleteTaskList(id);
       }
       @PutMapping("/update/{id}")
-     public Task updateTask(@PathVariable Integer id,@RequestBody Task task){
+     public Task updateTask(@PathVariable Long id,@RequestBody Task task){
         return taskService.updateRecordById(id,task);
       }
+    @PutMapping("/complete/{id}")
+    public boolean markTaskComplete(@PathVariable Long id) {
+        return taskService.markTaskAsComplete(id);
+    }
+
     @PutMapping("/{taskId}/star")
-    public String starTask(@PathVariable Integer taskId) {
+    public String starTask(@PathVariable Long taskId) {
         return taskService.markTaskAsStarred(taskId);
     }
 
     @PutMapping("/{taskId}/unstar")
-    public String unstarTask(@PathVariable Integer taskId) {
+    public String unstarTask(@PathVariable Long taskId) {
         return taskService.markTaskAsUnstarred(taskId);
     }
 
     @GetMapping("/{id}/tasklists")
     public TaskList getAllTaskLists(@PathVariable Long id) {
         return taskService.getAllTaskLists(id);
+    }
+    @GetMapping("/sorted")
+    public List<Task> getSortedTasks(@RequestParam String sortBy) {
+        return taskService.getSortedRecords(sortBy);
     }
 
 }

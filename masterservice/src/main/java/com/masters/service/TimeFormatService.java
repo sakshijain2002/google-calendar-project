@@ -2,6 +2,8 @@ package com.masters.service;
 
 import com.masters.entity.TimeFormat;
 import com.masters.repository.TimeFormatRepository;
+import org.bouncycastle.math.raw.Mod;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +14,8 @@ import java.util.Optional;
 public class TimeFormatService {
     @Autowired
      private  TimeFormatRepository timeFormatRepository;
+    @Autowired
+    private ModelMapper modelMapper;
      public List<TimeFormat> getAll(){
          return timeFormatRepository.findAll();
      }
@@ -29,10 +33,12 @@ public class TimeFormatService {
 
     public TimeFormat updateRecordById(Long id, TimeFormat record) {
 
-        Optional<TimeFormat> taskRecord = timeFormatRepository.findById(id);
-        if(taskRecord.isPresent()){
-            TimeFormat taskEntity =  taskRecord.get();
-            timeFormatRepository.save(taskEntity);
+        Optional<TimeFormat> timeFormatRecord = timeFormatRepository.findById(id);
+        if(timeFormatRecord.isPresent()){
+            TimeFormat timeFormat =  timeFormatRecord.get();
+            modelMapper.getConfiguration().setSkipNullEnabled(true);
+            modelMapper.map(record,timeFormat);
+            timeFormatRepository.save(timeFormat);
 
         }
         return timeFormatRepository.save(record);

@@ -2,6 +2,7 @@ package com.auth.filter;
 
 
 import com.auth.config.CustomUserDetailsService;
+import com.auth.entity.Role;
 import com.auth.service.JwtService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -36,9 +37,12 @@ public class AuthFilter extends OncePerRequestFilter {
         String authHeader = request.getHeader("Authorization");
         String token = null;
         String email = null;
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
           email = jwtService.extractEmail(token);
+
+
         }
 
         if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {

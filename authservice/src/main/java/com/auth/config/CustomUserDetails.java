@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 public class CustomUserDetails implements UserDetails {
     private String email;
     private String password;
+
+    private Integer userId;
     private List<GrantedAuthority> roles;
     private UserCredential userCredential;
     public CustomUserDetails(UserCredential userCredential) {

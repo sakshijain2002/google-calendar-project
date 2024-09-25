@@ -2,6 +2,7 @@ package com.masters.controller;
 
 import com.masters.entity.AlternativeCalendar;
 import com.masters.service.AlternativeCalendarService;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,9 +28,9 @@ public class AlternativeCalendarController {
     public AlternativeCalendar save(@RequestBody AlternativeCalendar alternativeCalendar){
         return alternativeCalendarService.save(alternativeCalendar);
     }
-    @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable Long id){
-        alternativeCalendarService.deleteById(id);
+    @DeleteMapping("/{id}/{email}")
+    public void deleteById(@PathVariable Long id, @PathVariable String email){
+        alternativeCalendarService.deleteById(id,email);
     }
 
     @PutMapping("/update/{id}")

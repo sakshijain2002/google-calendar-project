@@ -2,6 +2,7 @@ package com.masters.service;
 
 import com.masters.entity.AddInvitation;
 import com.masters.repository.AddInvitationRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,8 @@ import java.util.Optional;
 public class AddInvitationService {
     @Autowired
     private AddInvitationRepository addInvitationRepository;
+    @Autowired
+    private ModelMapper modelMapper;
 
     public List<AddInvitation> getAll(){
         return addInvitationRepository.findAll();
@@ -25,11 +28,14 @@ public class AddInvitationService {
     public void deleteById(Long id){
         addInvitationRepository.deleteById(id);
     }
+
     public AddInvitation updateRecordById(Long id, AddInvitation record) {
 
         Optional<AddInvitation> invitationRecord= addInvitationRepository.findById(id);
         if(invitationRecord.isPresent()){
             AddInvitation invitation =  invitationRecord.get();
+            modelMapper.getConfiguration().setSkipNullEnabled(true);
+            modelMapper.map(record,invitation);
             addInvitationRepository.save(invitation);
 
         }

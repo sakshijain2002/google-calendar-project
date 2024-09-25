@@ -18,6 +18,6 @@ public class Language {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id ;
-     private String languageName;
+    private String language;
 }
 

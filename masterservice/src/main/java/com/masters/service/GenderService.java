@@ -1,7 +1,7 @@
 package com.masters.service;
 
 import com.masters.entity.Gender;
-import com.masters.entity.Settings;
+
 import com.masters.repository.GenderRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.Setter;

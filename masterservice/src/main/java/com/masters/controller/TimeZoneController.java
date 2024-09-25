@@ -26,10 +26,11 @@ public class TimeZoneController {
         return timeZoneService.createTimeZone(timeZone);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public void deleteById(@PathVariable Long id){
         timeZoneService.deleteById(id);
     }
+
     @PutMapping("/update/{id}")
     public TimeZone updateRecordById(@PathVariable Long id,@RequestBody TimeZone timeZone){
         return timeZoneService.updateRecordById(id,timeZone);

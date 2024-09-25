@@ -31,18 +31,17 @@ public class AuthConfig {
 
 
 
-    @Bean
-    public UserDetailsService userDetailsService(){
-        return new CustomUserDetailsService();
-    }
+    @Autowired
+    public UserDetailsService userDetailsService;
+
 
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http.cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .authorizeRequests().requestMatchers("/auth/admin/dashboard","/auth/delete/{id}").hasRole("ADMIN")
-                .requestMatchers("/test").authenticated().requestMatchers("auth/getAll","/auth/register","/auth/token","/auth/validate","/auth/refreshToken","auth/update/user","auth/user/get/{id}","auth/get/user").permitAll()
+                .authorizeRequests().requestMatchers("/auth/admin/dashboard","/auth/delete/{userId}").hasRole("ADMIN")
+                .requestMatchers("/test").authenticated().requestMatchers("auth/getAll","/auth/register","/auth/token","/auth/user/getEmail/{email}","/auth/validate","/auth/refreshToken","auth/update/user","auth/user/get/{id}","auth/user/getEmail/{email}","auth/get/user","auth/email","auth/getRole/{email}").permitAll()
                 .anyRequest()
                 .authenticated().and()
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -60,7 +59,7 @@ public class AuthConfig {
     @Bean
     public AuthenticationProvider authenticationProvider(){
         DaoAuthenticationProvider authenticationProvider=new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService());
+        authenticationProvider.setUserDetailsService(userDetailsService);
         authenticationProvider.setPasswordEncoder(passwordEncoder());
         return authenticationProvider;
     }

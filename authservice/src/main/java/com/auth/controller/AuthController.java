@@ -1,6 +1,7 @@
 package com.auth.controller;
 
 import com.auth.entity.RefreshToken;
+import com.auth.entity.Role;
 import com.auth.entity.UserCredential;
 import com.auth.model.AuthRequest;
 import com.auth.model.JwtResponse;
@@ -8,6 +9,7 @@ import com.auth.model.RefreshTokenRequest;
 import com.auth.service.AuthService;
 import com.auth.service.RefreshTokenService;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -21,6 +23,8 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/auth")
@@ -44,6 +48,10 @@ public class AuthController {
     public UserCredential getById(@PathVariable Integer id){
         return service.getById(id);
     }
+    @GetMapping("/user/getEmail/{email}")
+    public UserCredential getByEmail(@PathVariable String email){
+        return service.getByEmail(email);
+    }
     @GetMapping("/get/user")
     public UserCredential getProfile(@RequestHeader("Authorization") String authorizationHeader) {
         // Extract the token from the Authorization header (assumes "Bearer <token>" format)
@@ -54,8 +62,20 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public UserCredential addNewUser(@RequestBody UserCredential user) {
-        return service.saveUser(user);
+    public ResponseEntity<Map<String, Object>> createUser(@RequestBody UserCredential userCredential) {
+        try {
+            // Call the service method to save the user and get the response
+            Map<String, Object> response = service.saveUser(userCredential);
+
+            // Return the response with HTTP status 201 (Created)
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (RuntimeException e) {
+            // Handle known exceptions (e.g., email already exists)
+            return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            // Handle other unexpected exceptions
+            return new ResponseEntity<>(Map.of("message", "An unexpected error occurred"), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 
@@ -137,5 +157,23 @@ public class AuthController {
     @GetMapping("/admin/dashboard")
     public String getAdminDashboard() {
         return "Admin Dashboard";
+    }
+
+    @GetMapping("/getRole/{email}")
+    public String getRoleById(@PathVariable String email){
+        return service.getRolesByEmail(email);
+    }
+
+
+    @GetMapping("/email")
+    public String getEmail(@RequestHeader("Authorization") String authorizationHeader){
+        String token = authorizationHeader.replace("Bearer ", "");
+        return service.extractEmail(token);
+    }
+
+    @Secured("ROLE_ADMIN")
+    @DeleteMapping("/delete/{userId}")
+    public void deleteById(@PathVariable Integer userId){
+        service.deleteUserById(userId);
     }
 }

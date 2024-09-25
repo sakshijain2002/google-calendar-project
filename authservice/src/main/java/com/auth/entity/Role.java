@@ -1,5 +1,6 @@
 package com.auth.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,10 +17,16 @@ import java.util.Set;
 public class Role {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @JsonIgnore
     private Integer id;
 
     private String role;
 
     @ManyToMany(mappedBy = "role")
-    private Set<UserCredential> users;
+    @JsonIgnore
+    private Set<UserCredential> user;
+    // Constructor to accept a role name
+    public Role(String role) {
+        this.role = role;
+    }
 }

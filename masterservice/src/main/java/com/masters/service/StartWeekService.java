@@ -2,6 +2,7 @@ package com.masters.service;
 
 import com.masters.entity.StartWeek;
 import com.masters.repository.StartWeekRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,9 @@ import java.util.Optional;
 public class StartWeekService {
     @Autowired
     private StartWeekRepository startWeekRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
      public List<StartWeek> getAll(){
          return startWeekRepository.findAll();
@@ -33,6 +37,8 @@ public class StartWeekService {
         Optional<StartWeek> startWeekRecord = startWeekRepository.findById(id);
         if(startWeekRecord.isPresent()){
             StartWeek startWeek =  startWeekRecord.get();
+            modelMapper.getConfiguration().setSkipNullEnabled(true);
+            modelMapper.map(record,startWeek);
             startWeekRepository.save(startWeek);
 
         }

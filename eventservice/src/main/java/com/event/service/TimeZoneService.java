@@ -9,6 +9,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(url="http://localhost:8086",value = "timeZone")
 public interface TimeZoneService {
 
-    @GetMapping("/settings/timeZone")
+    @GetMapping("/master/timeZone")
     TimeZoneModel getById(@PathVariable Long id);
 }

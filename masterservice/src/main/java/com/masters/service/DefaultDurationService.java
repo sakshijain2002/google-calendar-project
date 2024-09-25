@@ -2,6 +2,7 @@ package com.masters.service;
 
 import com.masters.entity.DefaultDuration;
 import com.masters.repository.DefaultDurationRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,8 @@ import java.util.Optional;
 public class DefaultDurationService {
     @Autowired
     private DefaultDurationRepository defaultDurationRepository;
+    @Autowired
+    private ModelMapper modelMapper;
 
     public List<DefaultDuration> getAll(){
         return defaultDurationRepository.findAll();
@@ -32,6 +35,8 @@ public class DefaultDurationService {
         Optional<DefaultDuration> defaultDurationRecord = defaultDurationRepository.findById(id);
         if(defaultDurationRecord.isPresent()){
            DefaultDuration defaultDuration =  defaultDurationRecord.get();
+            modelMapper.getConfiguration().setSkipNullEnabled(true);
+            modelMapper.map(record,defaultDuration);
             defaultDurationRepository.save(defaultDuration);
 
         }

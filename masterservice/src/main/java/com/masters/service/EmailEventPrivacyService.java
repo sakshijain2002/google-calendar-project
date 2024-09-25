@@ -2,6 +2,7 @@ package com.masters.service;
 
 import com.masters.entity.EmailEventPrivacy;
 import com.masters.repository.EmailEventPrivacyRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,9 @@ import java.util.Optional;
 public class EmailEventPrivacyService {
     @Autowired
     private EmailEventPrivacyRepository emailEventPrivacyRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     public List<EmailEventPrivacy> getAll(){
         return emailEventPrivacyRepository.findAll();
@@ -33,6 +37,8 @@ public class EmailEventPrivacyService {
         Optional<EmailEventPrivacy> emailEventPrivacyRecord = emailEventPrivacyRepository.findById(id);
         if(emailEventPrivacyRecord.isPresent()){
          EmailEventPrivacy emailEventPrivacy = emailEventPrivacyRecord.get();
+            modelMapper.getConfiguration().setSkipNullEnabled(true);
+            modelMapper.map(record,emailEventPrivacy);
             emailEventPrivacyRepository.save(emailEventPrivacy);
 
         }

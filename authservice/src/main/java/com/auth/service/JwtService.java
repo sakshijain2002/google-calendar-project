@@ -3,15 +3,15 @@ package com.auth.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.io.Decoder;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.bouncycastle.math.ec.rfc8032.Ed25519;
+import org.bouncycastle.math.ec.rfc8032.Ed448;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -22,9 +22,16 @@ import java.util.stream.Collectors;
 @Component
 public class JwtService {
 
-
+    @Autowired
+    private final UserDetailsService userDetailsService;
     @Value("${jwt.secretKey}")
-   private String secretKey;
+    private String secretKey;
+
+
+    public JwtService(UserDetailsService userDetailsService) {
+        this.userDetailsService = userDetailsService;
+    }
+
     public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
@@ -57,22 +64,45 @@ public class JwtService {
     }
 
 
-    public String generateToken(String email){
-        Map<String,Object> claims=new HashMap<>();
-        return createToken(claims,email);
-    }
+//    public String generateToken(String email){
+//        Map<String,Object> claims=new HashMap<>();
+//        return createToken(claims,email);
+//    }
+
 
     private String createToken(Map<String, Object> claims, String email) {
         return Jwts.builder()
                 .setClaims(claims)
+
                 .setSubject(email)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis()+1000 * 60 * 5))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 5))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
     }
 
     private Key getSignKey() {
-        byte[] keyBytes= Decoders.BASE64.decode(secretKey);
+        byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }
+
+    public String generateToken(String email) {
+        // Retrieve user details (including roles) from the UserDetailsService
+        UserDetails userDetails = userDetailsService.loadUserByUsername(email);
+
+        // Extract roles from CustomUserDetails
+        List<String> roles = userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority) // Convert GrantedAuthority to String
+                .collect(Collectors.toList());
+
+        // Create claims map and add roles
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", roles);
+
+        // Create and return the token with the claims
+        return createToken(claims, email);
+    }
+
+
+
 }

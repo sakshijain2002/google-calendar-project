@@ -2,6 +2,7 @@ package com.masters.service;
 
 import com.masters.entity.CustomView;
 import com.masters.repository.CustomViewRepository;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +14,9 @@ public class CustomViewService {
 
     @Autowired
     private CustomViewRepository customViewRepository;
+
+    @Autowired
+    private ModelMapper modelMapper;
 
     public List<CustomView> getAll(){
         return customViewRepository.findAll();
@@ -34,6 +38,8 @@ public class CustomViewService {
         Optional<CustomView> viewRecord = customViewRepository.findById(id);
         if(viewRecord.isPresent()){
             CustomView view =  viewRecord.get();
+            modelMapper.getConfiguration().setSkipNullEnabled(true);
+            modelMapper.map(record,view);
            customViewRepository.save(view);
 
         }

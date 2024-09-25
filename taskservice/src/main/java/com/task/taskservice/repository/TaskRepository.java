@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface TaskRepository extends JpaRepository<Task,Integer> {
+public interface TaskRepository extends JpaRepository<Task,Long> {
     List<Task> findByStarredTaskTrue();
 
 //    Optional<Task> findByUserId(Integer id);
@@ -21,4 +21,9 @@ public interface TaskRepository extends JpaRepository<Task,Integer> {
 
     @Query(value = "SELECT * FROM task WHERE task_list_id = :taskListId", nativeQuery = true)
     List<Task> findTasksByTaskListId(@Param("taskListId") Long taskListId);
+
+
+    List<Task> findUserByEmail(String email);
+
+    List<Task> findTaskByEmail(String email);
 }
