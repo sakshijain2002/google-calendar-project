@@ -1,7 +1,6 @@
 package com.gateway.filter;
 
 
-
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +16,7 @@ public class RouteValidator {
             "/auth/token",
             "/auth/refreshToken",
             "/auth/validate",
+            "/master/**",
             "/eureka"
 
     );

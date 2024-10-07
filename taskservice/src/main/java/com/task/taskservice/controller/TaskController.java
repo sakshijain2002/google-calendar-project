@@ -37,9 +37,10 @@ public class TaskController {
         return taskService.addTask(task, id, userId);
     }
 
-    @PutMapping("/addAllTasks/{email}")
-    public List<Task> addTasks(@RequestBody List<Task> tasks, @PathVariable String email) {
-        return taskService.addAllTasks(tasks,email);
+    @PutMapping("/addAllTasks")
+    public List<Task> addTasks(@RequestBody List<Task> tasks,  @RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer ", "");
+        return taskService.addAllTasks(tasks,token);
 }
 //    @PutMapping("/addTask/{email}")
 //    public Task addTask(@RequestBody Task task,@PathVariable String email){

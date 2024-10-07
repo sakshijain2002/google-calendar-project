@@ -11,5 +11,5 @@ import lombok.Setter;
 @NoArgsConstructor
 public class DateFormatModel {
     private Integer id;
-    private String formatPattern;
+    private String format;
 }

@@ -3,15 +3,12 @@ package com.auth.service;
 
 import com.auth.entity.Role;
 import com.auth.entity.UserCredential;
-
 import com.auth.repository.RoleRepository;
 import com.auth.repository.UserCredentialRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,8 +36,7 @@ public class AuthService {
     private String secretKey;
 
 
-
-//public Map<String, Object> saveUser(UserCredential userCredential) {
+    //public Map<String, Object> saveUser(UserCredential userCredential) {
 //    // Encrypt the password
 //    userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
 //
@@ -75,35 +71,38 @@ public class AuthService {
 //
 //    return response;
 //}
-public Map<String, Object> saveUser(UserCredential userCredential) {
-    // Encrypt the password
-    userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
+    public Map<String, Object> saveUser(UserCredential userCredential) {
+        // Encrypt the password
+        userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
 
-    // Check if the email already exists
-    if (repository.existsByEmail(userCredential.getEmail())) {
-        throw new RuntimeException("Email address already exists.");
+        // Check if the email already exists
+        if (repository.existsByEmail(userCredential.getEmail())) {
+            throw new RuntimeException("Email address already exists.");
+        }
+
+        // Save the user with roles
+        UserCredential savedUser = repository.save(userCredential);
+
+        // Prepare the response
+        Map<String, Object> response = new HashMap<>();
+        response.put("userId", savedUser.getId());
+        response.put("message", "User created successfully");
+
+        return response;
     }
 
-    // Save the user with roles
-    UserCredential savedUser = repository.save(userCredential);
-
-    // Prepare the response
-    Map<String, Object> response = new HashMap<>();
-    response.put("userId", savedUser.getId());
-    response.put("message", "User created successfully");
-
-    return response;
-}
-
- public List<UserCredential> getAll(){
-    return  repository.findAll();
- }
- public UserCredential getById(Integer id){
-    return repository.findById(id).orElseThrow(()->new RuntimeException("data not found"));
- }
-    public UserCredential getByEmail(String email){
-        return repository.findByEmail(email).orElseThrow(()->new RuntimeException("data not found"));
+    public List<UserCredential> getAll() {
+        return repository.findAll();
     }
+
+    public UserCredential getById(Integer id) {
+        return repository.findById(id).orElseThrow(() -> new RuntimeException("data not found"));
+    }
+
+    public UserCredential getByEmail(String email) {
+        return repository.findByEmail(email).orElseThrow(() -> new RuntimeException("data not found"));
+    }
+
     public UserCredential getProfileFromJwt(String accessToken) {
         // Parse the JWT token to extract claims (like username or userId)
         Claims claims = Jwts.parser()
@@ -115,11 +114,11 @@ public Map<String, Object> saveUser(UserCredential userCredential) {
 
         // Fetch user credentials from the repository by username (or another identifier)
         return repository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User profile not found with email" +email));
+                .orElseThrow(() -> new RuntimeException("User profile not found with email" + email));
     }
 
 
-    public void deleteUserById(Integer id){
+    public void deleteUserById(Integer id) {
         repository.deleteById(id);
     }
 
@@ -129,11 +128,12 @@ public Map<String, Object> saveUser(UserCredential userCredential) {
         if (userRecord.isPresent()) {
             UserCredential user = userRecord.get();
             modelMapper.getConfiguration().setSkipNullEnabled(true);
-            modelMapper.map(record,user);
-             repository.save(user);
+            modelMapper.map(record, user);
+            repository.save(user);
         }
-       return record;
+        return record;
     }
+
     public UserCredential updateUserProfileByToken(UserCredential record, String accessToken) {
 
         // Extract email (subject) from the JWT token
@@ -163,28 +163,28 @@ public Map<String, Object> saveUser(UserCredential userCredential) {
     }
 
 
-
     public String generateToken(String username) {
         return jwtService.generateToken(username);
     }
-    public String extractEmail(String token){
-    return jwtService.extractEmail(token);
+
+    public String extractEmail(String token) {
+        return jwtService.extractEmail(token);
     }
 
-//    public Role getRoleByUser(Integer id){
+    //    public Role getRoleByUser(Integer id){
 //    return roleRepository.getRoleByUser(id);
 //    }
-public String getRolesByEmail(String email) {
-    Optional<UserCredential> user = repository.findByEmail(email);
-    if (user.isPresent()) {
-        // Get the roles and join the role names as a comma-separated string
-        Set<Role> roles = user.get().getRole();
-        return roles.stream()
-                .map(Role::getRole)  // Convert Role object to role name string
-                .collect(Collectors.joining(", "));  // Join role names into a single string
+    public String getRolesByEmail(String email) {
+        Optional<UserCredential> user = repository.findByEmail(email);
+        if (user.isPresent()) {
+            // Get the roles and join the role names as a comma-separated string
+            Set<Role> roles = user.get().getRole();
+            return roles.stream()
+                    .map(Role::getRole)  // Convert Role object to role name string
+                    .collect(Collectors.joining(", "));  // Join role names into a single string
+        }
+        return "No roles found"; // Or throw an exception if the user is not found
     }
-    return "No roles found"; // Or throw an exception if the user is not found
-}
 
 
 }

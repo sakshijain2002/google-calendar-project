@@ -1,9 +1,7 @@
 package com.auth.config;
 
 
-import com.auth.entity.Role;
 import com.auth.entity.UserCredential;
-
 import com.auth.repository.UserCredentialRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
@@ -14,16 +12,14 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
     @Autowired
-    private  UserCredentialRepository repository;
-
-
+    private UserCredentialRepository repository;
 
 
     //    @Override
@@ -32,19 +28,19 @@ public class CustomUserDetailsService implements UserDetailsService {
 //        return credential.map(CustomUserDetails::new)
 //                .orElseThrow(() -> new UsernameNotFoundException("user not found with email: " + email));
 //    }
-@Override
-public UserDetails loadUserByUsername(String email) {
-    UserCredential user = repository.findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+    @Override
+    public UserDetails loadUserByUsername(String email) {
+        UserCredential user = repository.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
-    // Convert roles to GrantedAuthority
-    List<GrantedAuthority> authorities = user.getRole().stream()
-            .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRole()))
-            .collect(Collectors.toList());
+        // Convert roles to GrantedAuthority
+        List<GrantedAuthority> authorities = user.getRole().stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getRole()))
+                .collect(Collectors.toList());
 
-    // Return CustomUserDetails with authorities
-    return new CustomUserDetails(user);
-}
+        // Return CustomUserDetails with authorities
+        return new CustomUserDetails(user);
+    }
 }
 
 //

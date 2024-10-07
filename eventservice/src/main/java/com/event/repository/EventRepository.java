@@ -10,4 +10,6 @@ public interface EventRepository extends JpaRepository<Event,Long> {
     List<Event> findByUserId(Integer userId);
 
     List<Event> findByEmail(String email);
+
+    List<Event> findEventByEmail(String email);
 }

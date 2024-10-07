@@ -57,10 +57,7 @@ public class UserCredential {
     private Long phno;
     private String gender;
 
-    @JsonIgnore
-    private String status;
-    @JsonIgnore
-    private LocalTime timeStamp;
+
 
 
 

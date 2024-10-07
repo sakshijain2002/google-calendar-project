@@ -1,7 +1,6 @@
 package com.auth.controller;
 
 import com.auth.entity.RefreshToken;
-import com.auth.entity.Role;
 import com.auth.entity.UserCredential;
 import com.auth.model.AuthRequest;
 import com.auth.model.JwtResponse;
@@ -9,14 +8,11 @@ import com.auth.model.RefreshTokenRequest;
 import com.auth.service.AuthService;
 import com.auth.service.RefreshTokenService;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/auth")
@@ -41,17 +36,20 @@ public class AuthController {
     private UserCredential user;
 
     @GetMapping("/getAll")
-    public List<UserCredential> getAll(){
+    public List<UserCredential> getAll() {
         return service.getAll();
     }
+
     @GetMapping("/user/get/{id}")
-    public UserCredential getById(@PathVariable Integer id){
+    public UserCredential getById(@PathVariable Integer id) {
         return service.getById(id);
     }
+
     @GetMapping("/user/getEmail/{email}")
-    public UserCredential getByEmail(@PathVariable String email){
+    public UserCredential getByEmail(@PathVariable String email) {
         return service.getByEmail(email);
     }
+
     @GetMapping("/get/user")
     public UserCredential getProfile(@RequestHeader("Authorization") String authorizationHeader) {
         // Extract the token from the Authorization header (assumes "Bearer <token>" format)
@@ -79,51 +77,51 @@ public class AuthController {
     }
 
 
-   @PostMapping("/token")
+    @PostMapping("/token")
     public JwtResponse getToken(@RequestBody AuthRequest authRequest) {
-    try {
-        // Authenticate the user
-        Authentication authenticate = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
-        );
+        try {
+            // Authenticate the user
+            Authentication authenticate = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
+            );
 
-        if (authenticate.isAuthenticated()) {
+            if (authenticate.isAuthenticated()) {
 
-            // Check if a refresh token already exists for this user
-            RefreshToken existingToken = refreshTokenService.findByEmail(authRequest.getEmail())
-                    .orElseGet(() -> refreshTokenService.createRefreshToken(authRequest.getEmail()));
+                // Check if a refresh token already exists for this user
+                RefreshToken existingToken = refreshTokenService.findByEmail(authRequest.getEmail())
+                        .orElseGet(() -> refreshTokenService.createRefreshToken(authRequest.getEmail()));
 
-            // Generate new access token
+                // Generate new access token
 //            String accessToken = service.generateToken(authRequest.getUsername());
 
-            // Return response with new access token and existing or new refresh token
-            return JwtResponse.builder()
-                    .accessToken(service.generateToken(authRequest.getEmail()))
-                    .refreshToken(existingToken.getRefreshToken())
-                    .build();
-        } else {
-            throw new RuntimeException("Invalid credentials or access denied");
+                // Return response with new access token and existing or new refresh token
+                return JwtResponse.builder()
+                        .accessToken(service.generateToken(authRequest.getEmail()))
+                        .refreshToken(existingToken.getRefreshToken())
+                        .build();
+            } else {
+                throw new RuntimeException("Invalid credentials or access denied");
+            }
+        } catch (Exception e) {
+            // Log the exception and provide a meaningful error response
+            System.err.println("Error during token generation: " + e.getMessage());
+            throw new RuntimeException("Error during token generation");
         }
-    } catch (Exception e) {
-        // Log the exception and provide a meaningful error response
-        System.err.println("Error during token generation: " + e.getMessage());
-        throw new RuntimeException("Error during token generation");
     }
-}
 
     @PostMapping("/refreshToken")
-    public JwtResponse refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest){
-     return refreshTokenService.findByToken(refreshTokenRequest.getRefreshToken())
-             .map(refreshTokenService::verifyExpiration)
-             .map(RefreshToken::getUserCredential)
-             .map(userCredential -> {
-                 String accessToken = service.generateToken(userCredential.getEmail());
-                 return JwtResponse.builder()
-                         .accessToken(accessToken)
-                         .refreshToken(refreshTokenRequest.getRefreshToken())
-                         .build();
+    public JwtResponse refreshToken(@RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return refreshTokenService.findByToken(refreshTokenRequest.getRefreshToken())
+                .map(refreshTokenService::verifyExpiration)
+                .map(RefreshToken::getUserCredential)
+                .map(userCredential -> {
+                    String accessToken = service.generateToken(userCredential.getEmail());
+                    return JwtResponse.builder()
+                            .accessToken(accessToken)
+                            .refreshToken(refreshTokenRequest.getRefreshToken())
+                            .build();
 
-             }).orElseThrow(()->new RuntimeException("Refresh Token is not in database"));
+                }).orElseThrow(() -> new RuntimeException("Refresh Token is not in database"));
 
     }
 
@@ -160,20 +158,20 @@ public class AuthController {
     }
 
     @GetMapping("/getRole/{email}")
-    public String getRoleById(@PathVariable String email){
+    public String getRoleById(@PathVariable String email) {
         return service.getRolesByEmail(email);
     }
 
 
     @GetMapping("/email")
-    public String getEmail(@RequestHeader("Authorization") String authorizationHeader){
+    public String getEmail(@RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");
         return service.extractEmail(token);
     }
 
     @Secured("ROLE_ADMIN")
     @DeleteMapping("/delete/{userId}")
-    public void deleteById(@PathVariable Integer userId){
+    public void deleteById(@PathVariable Integer userId) {
         service.deleteUserById(userId);
     }
 }

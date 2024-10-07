@@ -1,6 +1,5 @@
 package com.gateway.util;
 
-import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -25,7 +24,6 @@ public class JwtUtil {
 //                .parseClaimsJws(token)
 //                .getBody();
 //    }
-
 
 
     private Key getSignKey() {

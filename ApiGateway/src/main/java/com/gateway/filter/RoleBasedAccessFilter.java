@@ -15,15 +15,6 @@ public class RoleBasedAccessFilter extends AbstractGatewayFilterFactory<RoleBase
         super(Config.class);
     }
 
-    public static class Config {
-        private List<String> requiredRoles;
-
-        // Constructor, Getters, and Setters
-        public Config(List<String> requiredRoles) {
-            this.requiredRoles = requiredRoles;
-        }
-    }
-
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
@@ -48,5 +39,14 @@ public class RoleBasedAccessFilter extends AbstractGatewayFilterFactory<RoleBase
             }
             return chain.filter(exchange);
         };
+    }
+
+    public static class Config {
+        private List<String> requiredRoles;
+
+        // Constructor, Getters, and Setters
+        public Config(List<String> requiredRoles) {
+            this.requiredRoles = requiredRoles;
+        }
     }
 }

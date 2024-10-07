@@ -1,8 +1,6 @@
 package com.gateway.filter;
 
 import com.gateway.util.JwtUtil;
-
-import io.jsonwebtoken.Claims;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -14,8 +12,6 @@ import org.springframework.web.server.ServerWebExchange;
 import org.springframework.web.server.WebFilter;
 import org.springframework.web.server.WebFilterChain;
 import reactor.core.publisher.Mono;
-
-import java.util.List;
 
 @Component
 public class AuthenticationFilter extends AbstractGatewayFilterFactory<AuthenticationFilter.Config> implements WebFilter {
@@ -30,7 +26,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
         super(Config.class);
     }
 
-//    @Override
+    //    @Override
 //    public GatewayFilter apply(Config config) {
 //        return ((exchange, chain) -> {
 //            if (validator.isSecured.test(exchange.getRequest())) {
@@ -56,20 +52,20 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
 //            return chain.filter(exchange);
 //        });
 //    }
-@Override
-public GatewayFilter apply(Config config) {
-    return (exchange, chain) -> {
-        String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
+    @Override
+    public GatewayFilter apply(Config config) {
+        return (exchange, chain) -> {
+            String authHeader = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-            return exchange.getResponse().setComplete();
-        }
+            if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+                exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
+                return exchange.getResponse().setComplete();
+            }
 
-        String token = authHeader.substring(7);
+            String token = authHeader.substring(7);
 //        Claims claims = jwtUtil.extractAllClaims(token);
 
-        // Log claims for debugging
+            // Log claims for debugging
 //        System.out.println("JWT Claims: " + claims);
 //
 //        if (claims == null) {
@@ -88,18 +84,17 @@ public GatewayFilter apply(Config config) {
 //            return exchange.getResponse().setComplete();
 //        }
 
-        // Add roles to the request header for downstream services to check
+            // Add roles to the request header for downstream services to check
 //        exchange.getRequest().mutate().header("roles", String.join(",", roles)).build();
 
-        return chain.filter(exchange);
-    };
-}
+            return chain.filter(exchange);
+        };
+    }
 
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
         // Bypass OPTIONS requests
-
 
 
         if (validator.isSecured.test(exchange.getRequest())) {

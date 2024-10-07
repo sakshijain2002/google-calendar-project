@@ -12,5 +12,5 @@ import lombok.Setter;
 public class TimeZoneModel {
     private Long id;
 
-    private String name;
+    private String timeZone;
 }

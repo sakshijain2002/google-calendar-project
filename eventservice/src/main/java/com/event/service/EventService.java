@@ -56,19 +56,34 @@ public class EventService {
         // Save the event to the repository
         return eventRepository.save(event);
     }
-    public Event saveEventByEmail(Event event,String email){
-        UserModel userModel = userServiceClient.getUserByEmail(email);
-        if(userModel == null){
-            throw new RuntimeException("user not found");
+//    public Event saveEventByEmail(Event event,String email){
+//        UserModel userModel = userServiceClient.getUserByEmail(email);
+//        if(userModel == null){
+//            throw new RuntimeException("user not found");
+//        }
+//        event.setUserId(userModel.getId());
+//        event.setDay(LocalDate.now());
+//        // Save the event to the repository
+//        return eventRepository.save(event);
+//    }
+
+
+    public List<Event> addAllTasks(List<Event> events, String token) {
+
+        // Fetch user details using the email
+//        UserModel userDto = userServiceClient.getUserByEmail(email);
+        String userEmail = userServiceClient.extractEmailFromToken(token);
+        for (Event event : events) {
+            event.setEmail(userEmail); // Assuming your Task class has a method setEmail()
         }
-        event.setUserId(userModel.getId());
-        event.setDay(LocalDate.now());
-        // Save the event to the repository
-        return eventRepository.save(event);
+        return eventRepository.saveAll(events);
+
     }
-
-
-
+public Event addEvent(Event event,String token){
+    String userEmail = userServiceClient.extractEmailFromToken(token);
+    event.setEmail(userEmail);
+    return eventRepository.save(event);
+}
     public void deleteById(Long id){
         eventRepository.deleteById(id);
     }
@@ -84,6 +99,12 @@ public class EventService {
 
         }
         return record;
+    }
+    public List<Event> getAllEvent(String token){
+        String email;
+        email = userServiceClient.extractEmailFromToken(token);
+        return eventRepository.findEventByEmail(email);
+//        return taskRepository.findAll();
     }
 
 

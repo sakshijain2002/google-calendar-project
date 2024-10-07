@@ -17,5 +17,6 @@ public interface UserServiceClient {
     @GetMapping("/auth/user/getEmail/{email}")
     UserModel getUserByEmail(@PathVariable String email);
 
-
+    @GetMapping("/auth/email")
+    String extractEmailFromToken(@RequestHeader("Authorization") String token);
 }

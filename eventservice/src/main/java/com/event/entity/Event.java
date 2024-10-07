@@ -1,5 +1,6 @@
 package com.event.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,18 +17,20 @@ import java.time.LocalDate;
 
 public class Event {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String title;
-    private LocalDate day;
-    private String eventTime;
-    private Boolean allDay;
-    private String repeatType;
-    private String Location;
+    private Long day;
+//    private String eventTime;
+//    private Boolean allDay;
+//    private String repeatType;
+//    private String Location;
     private String description;
-    private Long timeZoneId;
+//    private Long timeZoneId;
 
+    private String label;
     private Integer userId;
+
+    @JsonIgnore
     private String email;
 
 

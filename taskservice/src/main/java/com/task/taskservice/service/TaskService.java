@@ -57,22 +57,7 @@ public class TaskService {
         return taskRepository.save(task);
 
     }
-//    public Task addTask(Task task,String email){
-////        TaskList taskList = taskListRepository.findById(id)
-////                .orElseThrow(()-> new RuntimeException("Task List not found"));
-//        UserModel userDto = userServiceClient.getUserByEmail(email);
-//
-//
-//        if (userDto == null) {
-//            throw new RuntimeException("User not found");
-//        }
-//
-//        // Set TaskList and user-related data to Task
-//
-//        task.setUserId(userDto.getId());// Or any other user-related field
-//        return taskRepository.save(task);
-//
-//    }
+
     @Transactional
     public Task addTask(Task task, String token) {
         String userEmail = userServiceClient.extractEmailFromToken(token);
@@ -80,50 +65,15 @@ public class TaskService {
         return taskRepository.save(task);
     }
 
-//public Task addTask(Task task, String token) {
-//    // 1. Validate the token using the authentication microservice and extract the user email (assuming it's a JWT)
-//    String userEmail;
-//
-//        userEmail = userServiceClient.extractEmailFromToken(token);  // Assuming this method validates and extracts email from token
-//
-//
-//    // 2. Check if the email is extracted successfully
-//    if (userEmail == null || userEmail.isEmpty()) {
-//        throw new RuntimeException("User email could not be extracted from the token");
-//    }
-//
-//    // 3. Fetch user details using the email from the user microservice
-//    UserModel userDto = userServiceClient.getUserByEmail(userEmail);
-//    if (userDto == null) {
-//        throw new RuntimeException("User not found for email: " + userEmail);
-//    }
-//
-//    // 4. Set user-related data on the task object (e.g., userId and email)
-//    task.setUserId(userDto.getId());  // Set user ID from UserModel
-//    task.setEmail(userDto.getEmail());  // Set email from UserModel
-//
-//    // 5. Save the task to the repository
-//    return taskRepository.save(task);  // Save task associated with the user
-//}
-    public List<Task> addAllTasks(List<Task> tasks, String email) {
+
+    public List<Task> addAllTasks(List<Task> tasks, String token) {
 
         // Fetch user details using the email
-        UserModel userDto = userServiceClient.getUserByEmail(email);
-
-
-        if (userDto == null) {
-            throw new RuntimeException("User not found");
+//        UserModel userDto = userServiceClient.getUserByEmail(email);
+        String userEmail = userServiceClient.extractEmailFromToken(token);
+        for (Task task : tasks) {
+            task.setEmail(userEmail); // Assuming your Task class has a method setEmail()
         }
-
-
-        // For each task, set the current date and user ID
-        tasks.forEach(task -> {
-
-            task.setUserId(userDto.getId());
-            task.setEmail(email);
-        });
-
-        // Save all tasks in batch and return the result
         return taskRepository.saveAll(tasks);
 
     }
@@ -181,8 +131,6 @@ public class TaskService {
         String email;
         email = userServiceClient.extractEmailFromToken(token);
          return taskRepository.findTaskByEmail(email);
-
-
 //        return taskRepository.findAll();
     }
     public List<Task> getTasksByTaskListName(Long id) {
@@ -335,15 +283,5 @@ return taskRepository.save(record);
             throw new RuntimeException("Token validation failed", e);  // Custom exception for token-related errors
         }
     }
-    private UserModel fetchUserDetails(String email) {
-        UserModel user = userServiceClient.getUserByEmail(email);
-        if (user == null) {
-            throw new RuntimeException("User not found for email: " + email);  // Custom exception for user-related errors
-        }
-        return user;
-    }
-    private void associateUserWithTask(Task task, UserModel user) {
-        task.setUserId(user.getId());
-        task.setEmail(user.getEmail());
-    }
+
 }

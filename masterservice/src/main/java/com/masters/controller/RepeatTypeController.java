@@ -17,14 +17,17 @@ public class RepeatTypeController {
     public List<RepeatType> getAll(){
         return repeatTypeService.getAll();
     }
+
     @GetMapping("/get/{id}")
     public RepeatType getById(@PathVariable Long id){
         return repeatTypeService.getById(id);
     }
+
     @PostMapping("/create")
     public RepeatType save(@RequestBody RepeatType type){
         return repeatTypeService.save(type);
     }
+
     @PutMapping("/update/{id}")
     public RepeatType updateRecordById(@PathVariable Long id,@RequestBody RepeatType type){
        return repeatTypeService.updateRecordById(id,type);

@@ -1,12 +1,13 @@
 package com.settings.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import java.text.DateFormat;
 
 @Entity
 @AllArgsConstructor
@@ -20,7 +21,7 @@ public class Settings {
     private Integer userId;
     private Long timeZoneId;
     private Long countryId;
-    private Integer  dateFormatId;
+    private Integer dateFormatId;
     private Long defaultEventDurationId;
     private Long languageId;
     private Long addInvitationId;
@@ -50,6 +51,7 @@ public class Settings {
 
     private Boolean enableKeyboardShortcut;
 
+    private String email;
 
 
 }

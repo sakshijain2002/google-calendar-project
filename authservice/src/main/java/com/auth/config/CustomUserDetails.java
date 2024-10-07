@@ -1,18 +1,13 @@
 package com.auth.config;
 
 
-import com.auth.entity.Role;
 import com.auth.entity.UserCredential;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class CustomUserDetails implements UserDetails {
@@ -22,6 +17,7 @@ public class CustomUserDetails implements UserDetails {
     private Integer userId;
     private List<GrantedAuthority> roles;
     private UserCredential userCredential;
+
     public CustomUserDetails(UserCredential userCredential) {
         this.email = userCredential.getEmail();
         this.password = userCredential.getPassword();
@@ -46,7 +42,6 @@ public class CustomUserDetails implements UserDetails {
     public String getUsername() {
         return email;
     }
-
 
 
     @Override
