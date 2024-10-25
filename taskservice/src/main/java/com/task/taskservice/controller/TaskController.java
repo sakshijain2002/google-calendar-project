@@ -20,6 +20,10 @@ public class TaskController {
     public List<Task> getTask(@RequestHeader("Authorization") String token) {
         return taskService.getAllTask(token);
     }
+    @GetMapping("/{email}")
+    public List<Task> getTaskByEmail(@PathVariable String email) {
+        return taskService.getTasksByEmailId(email);
+    }
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<Task>> getTasksByUserId(@PathVariable Integer userId) {
@@ -65,6 +69,10 @@ public class TaskController {
       public void deleteTask(@PathVariable Long id,@PathVariable Long taskListId){
            taskService.removeTaskFromTaskList(id,taskListId);
       }
+      @DeleteMapping("/delete/{id}")
+      public void deleteTask(@PathVariable Long id){
+        taskService.deleteTask(id);
+      }
 
       @DeleteMapping("/taskList/{id}")
       public String deleteTaskList(@PathVariable Long id){
@@ -85,7 +93,7 @@ public class TaskController {
     }
 
     @PutMapping("/{taskId}/unstar")
-    public String unstarTask(@PathVariable Long taskId) {
+    public boolean unstarTask(@PathVariable Long taskId) {
         return taskService.markTaskAsUnstarred(taskId);
     }
 

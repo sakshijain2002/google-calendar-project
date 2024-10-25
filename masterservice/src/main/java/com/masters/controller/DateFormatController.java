@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/master/dateFormat")
+@RequestMapping("/masters/date-format")
 public class DateFormatController {
     @Autowired
     private DateFormatService dateFormatService;
@@ -31,7 +31,7 @@ public class DateFormatController {
         return dateFormatService.updateRecordById(id,dateFormat);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     public void deleteById(@PathVariable Integer id){
         dateFormatService.deleteById(id);
     }

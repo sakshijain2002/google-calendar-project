@@ -22,5 +22,8 @@ public class TaskList {
     @JsonIgnore
     @OneToMany(mappedBy = "taskList", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = false)
     private List<Task> tasks = new ArrayList<>();
+    @JsonIgnore
+    @OneToMany(mappedBy = "taskList", cascade = CascadeType.ALL,fetch = FetchType.EAGER,orphanRemoval = false)
+    private List<StarredTask> starredTasks = new ArrayList<>();
 
 }

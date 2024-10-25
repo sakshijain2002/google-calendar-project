@@ -1,5 +1,6 @@
 package com.auth.entity;
 
+import com.auth.repository.RoleRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
@@ -53,12 +54,28 @@ public class UserCredential {
     @Column(unique = true)
     private String email;
 
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private Long phno;
     private String gender;
 
+    public void updateRole(String newRole, RoleRepository roleRepository) {
+        // Clear existing roles
+        this.role.clear();
 
+        // Find the role in the repository, or create a new one if it doesn't exist
+        Role roleEntity = roleRepository.findByRole(newRole)
+                .orElseGet(() -> roleRepository.save(new Role(newRole)));  // Create and save the role if not found
 
+        // Add the new role to the user's set of roles
+        this.role.add(roleEntity);
+
+    }
+    private String accountStatus = "public";
+
+    @OneToOne(mappedBy = "userCredential", cascade = CascadeType.ALL, orphanRemoval = true)
+    @JsonIgnore
+    private RefreshToken refreshToken;
 
 
 }

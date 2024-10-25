@@ -36,7 +36,7 @@ public class AuthConfig {
         return http.cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
                 .authorizeRequests().requestMatchers("/auth/admin/dashboard", "/auth/delete/{userId}").hasRole("ADMIN")
-                .requestMatchers("/test").authenticated().requestMatchers("auth/getAll", "/auth/register", "/auth/token", "/auth/user/getEmail/{email}", "/auth/validate", "/auth/refreshToken", "auth/update/user", "auth/user/get/{id}", "auth/user/getEmail/{email}", "auth/get/user", "auth/email", "auth/getRole/{email}").permitAll()
+                .requestMatchers("/test").authenticated().requestMatchers("auth/admin/users", "/auth/register", "/auth/token", "/auth/user/getEmail/{email}", "/auth/validate", "/auth/refreshToken", "auth/update/user", "auth/user/get/{id}", "auth/user/getEmail/{email}", "auth/get/user", "auth/email", "auth/getRole/{email}","auth/search/{email}","auth/admin/change-role","auth/admin/delete/{email}").permitAll()
                 .anyRequest()
                 .authenticated().and()
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

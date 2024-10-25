@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/master/timeFormat")
+@RequestMapping("/masters/timeFormat")
 public class TimeFormatController {
      @Autowired
      private TimeFormatService  timeFormatService;

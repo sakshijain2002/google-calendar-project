@@ -20,7 +20,7 @@ public class StarredTask {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne
     @JoinColumn(name = "task_id", referencedColumnName = "id")
     private Task task;
 
@@ -32,4 +32,6 @@ public class StarredTask {
     private Integer userId;
 
     private LocalDateTime starredDate;
+
+    private Boolean starredTask=true;
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @Entity
 @Getter
@@ -28,7 +29,16 @@ public class Event {
 //    private Long timeZoneId;
 
     private String label;
-    private Integer userId;
+
+
+    @ManyToMany(cascade = CascadeType.ALL)
+    @JoinTable(
+            name = "event_guests",
+            joinColumns = @JoinColumn(name = "event_id"),
+            inverseJoinColumns = @JoinColumn(name = "guest_id")
+    )
+
+    private Set<Guest> guests;
 
     @JsonIgnore
     private String email;

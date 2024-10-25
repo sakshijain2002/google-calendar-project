@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/master/timeZone")
+@RequestMapping("/masters/timezone")
 public class TimeZoneController {
     @Autowired
     private TimeZoneService timeZoneService;

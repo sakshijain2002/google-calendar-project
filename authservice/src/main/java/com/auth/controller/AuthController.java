@@ -2,9 +2,7 @@ package com.auth.controller;
 
 import com.auth.entity.RefreshToken;
 import com.auth.entity.UserCredential;
-import com.auth.model.AuthRequest;
-import com.auth.model.JwtResponse;
-import com.auth.model.RefreshTokenRequest;
+import com.auth.model.*;
 import com.auth.service.AuthService;
 import com.auth.service.RefreshTokenService;
 import jakarta.persistence.EntityNotFoundException;
@@ -35,7 +33,7 @@ public class AuthController {
 
     private UserCredential user;
 
-    @GetMapping("/getAll")
+    @GetMapping("/admin/users")
     public List<UserCredential> getAll() {
         return service.getAll();
     }
@@ -157,10 +155,10 @@ public class AuthController {
         return "Admin Dashboard";
     }
 
-    @GetMapping("/getRole/{email}")
-    public String getRoleById(@PathVariable String email) {
-        return service.getRolesByEmail(email);
-    }
+//    @GetMapping("/getRole/{email}")
+//    public String getRoleById(@PathVariable String email) {
+//        return service.getRolesByEmail(email);
+//    }
 
 
     @GetMapping("/email")
@@ -173,5 +171,25 @@ public class AuthController {
     @DeleteMapping("/delete/{userId}")
     public void deleteById(@PathVariable Integer userId) {
         service.deleteUserById(userId);
+    }
+
+    @DeleteMapping("/admin/delete/{email}")
+    public void deleteByEmail(@PathVariable String email){
+        service.deleteUserByEmail(email);
+    }
+
+    @GetMapping("/search/{email}")
+    public UserActivityDto getUserActivity(@PathVariable String email) {
+        // Extract JWT token without "Bearer " prefix
+        return service.getUserActivity(email);
+    }
+    @PutMapping("/admin/change-role")
+    public String updateUserRole(@RequestBody UpdateRoleRequest updateRoleRequest) {
+        try {
+            service.updateUserRole(updateRoleRequest);
+            return "User role updated successfully!";
+        } catch (Exception e) {
+            return "Error: " + e.getMessage();
+        }
     }
 }

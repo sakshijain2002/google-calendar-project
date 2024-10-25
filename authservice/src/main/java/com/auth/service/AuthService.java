@@ -3,6 +3,10 @@ package com.auth.service;
 
 import com.auth.entity.Role;
 import com.auth.entity.UserCredential;
+import com.auth.model.Event;
+import com.auth.model.Task;
+import com.auth.model.UpdateRoleRequest;
+import com.auth.model.UserActivityDto;
 import com.auth.repository.RoleRepository;
 import com.auth.repository.UserCredentialRepository;
 import io.jsonwebtoken.Claims;
@@ -35,42 +39,11 @@ public class AuthService {
     @Value("${jwt.secretKey}")
     private String secretKey;
 
+    @Autowired
+    private TaskClient taskClient;
 
-    //public Map<String, Object> saveUser(UserCredential userCredential) {
-//    // Encrypt the password
-//    userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
-//
-//    // Check if the email already exists
-//    if (repository.existsByEmail(userCredential.getEmail())) {
-//        throw new RuntimeException("Email address already exists.");
-//    }
-//
-//    // Assign roles to the user
-//    Set<Role> roles = userCredential.getRole();
-//    if (roles != null) {
-//        for (Role role : roles) {
-//            // Ensure roles exist in the database
-//            Role existingRole = roleRepository.findByRole(role.getRole());
-//            if (existingRole != null) {
-//                role.setId(existingRole.getId());
-//            } else {
-//                // Handle the case where the role does not exist
-//                // Optionally, create and save the role if necessary
-//                // roleRepository.save(role);
-//            }
-//        }
-//    }
-//
-//    // Save the user with roles
-//    UserCredential savedUser = repository.save(userCredential);
-//
-//    // Prepare the response
-//    Map<String, Object> response = new HashMap<>();
-//    response.put("userId", savedUser.getId());
-//    response.put("message", "User created successfully");
-//
-//    return response;
-//}
+    @Autowired
+    private EventClient eventClient;
     public Map<String, Object> saveUser(UserCredential userCredential) {
         // Encrypt the password
         userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
@@ -119,7 +92,20 @@ public class AuthService {
 
 
     public void deleteUserById(Integer id) {
+
         repository.deleteById(id);
+    }
+
+    public void deleteUserByEmail(String email) {
+        UserCredential user = repository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Clear the user-role associations
+        user.getRole().clear();
+        repository.save(user);
+
+        // Now delete the user
+        repository.delete(user);
     }
 
     public UserCredential updateRecordById(Integer id, UserCredential record) {
@@ -171,19 +157,44 @@ public class AuthService {
         return jwtService.extractEmail(token);
     }
 
-    //    public Role getRoleByUser(Integer id){
-//    return roleRepository.getRoleByUser(id);
+//    public String getRolesByEmail(String email) {
+//        Optional<UserCredential> user = repository.findByEmail(email);
+//        if (user.isPresent()) {
+//            // Get the roles and join the role names as a comma-separated string
+//            Set<Role> roles = user.get().getRole();
+//            return roles.stream()
+//                    .map(Role::getRole)  // Convert Role object to role name string
+//                    .collect(Collectors.joining(", "));  // Join role names into a single string
+//        }
+//        return "No roles found"; // Or throw an exception if the user is not found
 //    }
-    public String getRolesByEmail(String email) {
-        Optional<UserCredential> user = repository.findByEmail(email);
-        if (user.isPresent()) {
-            // Get the roles and join the role names as a comma-separated string
-            Set<Role> roles = user.get().getRole();
-            return roles.stream()
-                    .map(Role::getRole)  // Convert Role object to role name string
-                    .collect(Collectors.joining(", "));  // Join role names into a single string
+    public UserActivityDto getUserActivity(String email) {
+        List<Task> tasks = taskClient.getTaskByEmail(email);
+        List<Event> events = eventClient.getByEmailId(email);
+        UserCredential credentials = repository.findByEmail(email).orElseThrow(()->new RuntimeException("data not found"));
+
+        return new UserActivityDto(credentials,events,tasks);
+    }
+
+    public void updateUserRole(UpdateRoleRequest updateRoleRequest) {
+        String email = updateRoleRequest.getEmail();
+        String newRole = updateRoleRequest.getNewRole();
+
+        // Find the user by email
+        Optional<UserCredential> userOptional = repository.findByEmail(email);
+
+        if (userOptional.isPresent()) {
+            // Get the user
+            UserCredential user = userOptional.get();
+
+            // Update the user's role
+            user.updateRole(newRole, roleRepository);
+
+            // Save the updated user
+            repository.save(user);
+        } else {
+            throw new RuntimeException("User with email " + email + " not found");
         }
-        return "No roles found"; // Or throw an exception if the user is not found
     }
 
 

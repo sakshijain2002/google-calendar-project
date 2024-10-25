@@ -1,9 +1,11 @@
 package com.event.controller;
 
 import com.event.entity.Event;
+import com.event.entity.Trash;
 import com.event.service.EventService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,20 +29,17 @@ public class EventController {
     public Event getById(@PathVariable Long id){
         return eventService.getById(id);
     }
-
-    @GetMapping("/user/{userId}")
-    public List<Event> getEventByUserId(@PathVariable Integer userId){
-        return eventService.getEventByUserId(userId);
+    @GetMapping("/getByEmail/{email}")
+    public List<Event> getByEmailId(@PathVariable String email){
+        return eventService.getByEmailId(email);
     }
-    @GetMapping("/user/{email}")
+
+
+    @GetMapping("/{email}")
     public List<Event> getEventByEmail(@PathVariable String email){
         return eventService.getEventByEmail(email);
     }
-    @PostMapping("/create/{userId}")
-    public Event saveEvent(@RequestBody Event event, @PathVariable Integer userId){
 
-        return eventService.saveEvent(event,userId);
-    }
 //    @PostMapping("/add/{email}")
 //    public Event saveEventByEmail(@RequestBody Event event, @PathVariable String email){
 //
@@ -63,7 +62,29 @@ public class EventController {
     @PostMapping("/create-event")
     public Event addEvent(@RequestBody Event event,@RequestHeader("Authorization") String authorizationHeader){
         String token = authorizationHeader.replace("Bearer","");
-        return eventService.addEvent(event,token);
+        return eventService.saveEvent(event,token);
     }
+
+    @DeleteMapping("/{id}/trash")
+    public ResponseEntity<Void> moveEventToTrash(@PathVariable Long id) {
+        eventService.moveToTrash(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    // Restore an event from trash
+    @PutMapping("/trash/{trashId}/delete")
+    public ResponseEntity<Void> restoreEventFromTrash(@PathVariable Long trashId) {
+        eventService.restoreFromTrash(trashId);
+        return ResponseEntity.noContent().build();
+    }
+
+
+    @GetMapping("/trashed")
+    public List<Trash> getAllTrashedEvents(@RequestHeader("Authorization") String authorizationHeader) {
+        String token = authorizationHeader.replace("Bearer","");
+        return eventService.getTrashedEventsByEmail(token); // You need to implement this in EventService
+    }
+
+
 
 }

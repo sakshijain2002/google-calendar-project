@@ -30,8 +30,8 @@ public class StarredTaskController {
     public StarredTask updateRecordById(@PathVariable Long id,@RequestBody StarredTask starredTask){
         return starredTaskService.updateRecordById(id,starredTask);
     }
-    @DeleteMapping("/{id}")
-    public void deleteById(@PathVariable Long id){
-        starredTaskService.deleteById(id);
+    @DeleteMapping("/{id}/{taskListId}")
+    public void deleteById(@PathVariable Long id,@PathVariable Long taskListId){
+        starredTaskService.deleteById(id,taskListId);
     }
 }

@@ -9,7 +9,9 @@ import com.task.taskservice.repository.CompletedTaskRepository;
 import com.task.taskservice.repository.StarredTaskRepository;
 import com.task.taskservice.repository.TaskListRepository;
 import com.task.taskservice.repository.TaskRepository;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import org.apache.tomcat.util.net.openssl.ciphers.Authentication;
 import org.modelmapper.ModelMapper;
@@ -38,6 +40,7 @@ public class TaskService {
     private StarredTaskRepository starredTaskRepository;
     @Autowired
     private CompletedTaskRepository completedTaskRepository;
+
     private static final Logger logger = LoggerFactory.getLogger(TaskService.class);
 
     public Task addTask(Task task,Long id,Integer userId){
@@ -56,6 +59,10 @@ public class TaskService {
         // Or any other user-related field
         return taskRepository.save(task);
 
+    }
+
+    public List<Task> getTasksByEmailId(String email){
+      return   taskRepository.findTaskByEmail(email);
     }
 
     @Transactional
@@ -177,69 +184,98 @@ return taskRepository.save(record);
         return "Task marked as starred";
     }
 
-    public String markTaskAsUnstarred(Long taskId) {
+    @Transactional
+    public boolean markTaskAsUnstarred(Long taskId) {
         // Fetch the task by taskId
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new RuntimeException("Task not found"));
 
-        // Check if the task is starred
+        // Check if the task is currently starred
         if (task.getStarredTask()) {
             // Mark the task as unstarred
             task.setStarredTask(false);
-            taskRepository.save(task);
+            task.setStarredDate(null);
+            taskRepository.save(task); // Save the updated task
 
-            // Remove the task from the StarredTask entity
+            // Find the corresponding StarredTask entry
             StarredTask starredTask = starredTaskRepository.findByTask(task)
                     .orElseThrow(() -> new RuntimeException("StarredTask entry not found for this task"));
+
+            // Remove the StarredTask from the TaskList if it's associated with one
+            TaskList taskList = starredTask.getTaskList();
+            if (taskList != null) {
+                taskList.getStarredTasks().remove(starredTask);
+                taskListRepository.save(taskList); // Save the updated TaskList
+            }
+
+            // Now delete the StarredTask entry
             starredTaskRepository.delete(starredTask);
 
-            return "Task marked as unstarred";
+            return true; // Successfully unstarred and removed from StarredTask
         } else {
-            return "Task is not starred";
+            logger.info("Task with ID {} is not starred", taskId);
+            return false; // Task is not starred
         }
     }
+
+
     @Transactional
     public boolean markTaskAsComplete(Long id) {
         Optional<Task> taskOpt = taskRepository.findById(id);
+
         if (taskOpt.isPresent()) {
             Task task = taskOpt.get();
-            task.setCompleted(true);
+            task.setCompleted(true); // Mark the task as completed
 
             // Create a CompletedTask object
             CompletedTask completedTask = new CompletedTask();
             completedTask.setId(task.getId());
             completedTask.setTitle(task.getTitle());
             completedTask.setDescription(task.getDescription());
-            completedTask.setTime(task.getTime());
             completedTask.setAllDay(task.getAllDay());
-            completedTask.setStarredTask(task.getStarredTask());
             completedTask.setUserId(task.getUserId());
             completedTask.setRepeatTypeId(task.getRepeatTypeId());
             completedTask.setCompleted(true);
 
             try {
-                // Save the completed task first
-                completedTaskRepository.save(completedTask);
+                // If the task is starred, remove its entry from StarredTask
+                if (task.getStarredTask()) {
+                    // Check if the task has associated starred tasks
+                    List<StarredTask> starredTasks = task.getStarredTasks();
+                    for (StarredTask starredTask : starredTasks) {
+                        starredTaskRepository.delete(starredTask);
+                    }
+                    task.getStarredTasks().clear(); // Clear the starred tasks from the task
+                }
 
-                // Delete the original task only after saving the completed task
-                TaskList taskList = task.getTaskList(); // Assuming a getter for taskList
+                // Step 1: Save the completed task
+                completedTaskRepository.save(completedTask); // Persist completed task
+
+                // Step 2: Remove the task from the TaskList if it exists
+                TaskList taskList = task.getTaskList();
                 if (taskList != null) {
-                    taskList.getTasks().remove(task); // Remove task from TaskList's list of tasks
+                    taskList.getTasks().remove(task); // Remove Task from TaskList
                     taskListRepository.save(taskList); // Save the updated TaskList
                 }
 
-                // Then delete the original task from the task repository
-                taskRepository.delete(task);
+                // Step 3: Now delete the Task safely
+                taskRepository.delete(task); // Delete the task
+
                 logger.info("Task deleted: {}", taskRepository.findById(id).isEmpty());
                 return true;
+
             } catch (Exception e) {
                 logger.error("Failed to mark task as complete: {}", e.getMessage());
-                return false; // Handle failure cases more gracefully
+                return false; // Handle failure gracefully
             }
         }
 
         return false; // Task not found
     }
+
+
+
+
     public List<Task> getSortedRecords(String sortBy) {
         List<Task> tasksEntityList = taskRepository.findAll();
         if (Objects.nonNull(tasksEntityList) && tasksEntityList.size() > 0) {
@@ -272,16 +308,6 @@ return taskRepository.save(record);
         }
         return comparator;
     }
-    private String validateTokenAndGetEmail(String token) {
-        try {
-            String userEmail = userServiceClient.extractEmailFromToken(token);
-            if (userEmail == null || userEmail.isEmpty()) {
-                throw new RuntimeException("Invalid token: Unable to extract email");
-            }
-            return userEmail;
-        } catch (Exception e) {
-            throw new RuntimeException("Token validation failed", e);  // Custom exception for token-related errors
-        }
-    }
+
 
 }

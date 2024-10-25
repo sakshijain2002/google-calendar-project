@@ -10,4 +10,5 @@ public interface AddInvitationService {
 
     @GetMapping("/master/addInvitaion/get/{id}")
     AddInvitation getById(@PathVariable Long id);
+
 }

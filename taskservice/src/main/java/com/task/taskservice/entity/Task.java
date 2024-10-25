@@ -19,11 +19,13 @@ import java.util.List;
 @Table(name="task")
 public class Task {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+
     private Long id;
     private String title;
     private String description;
-    private String time;
+    private String startTime;
+    private String endTime;
+    private String reminder;
     private Long day;
     private Boolean allDay;
     private Boolean completed = false;
@@ -32,6 +34,8 @@ public class Task {
     @JoinColumn(name = "task_list_id")
     private TaskList taskList;
     private Boolean starredTask = false;
+
+    @JsonIgnore
     private LocalDateTime starredDate;
 
     private Integer userId;
@@ -45,6 +49,5 @@ public class Task {
     @JsonIgnore
     @OneToMany(mappedBy = "task", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<StarredTask> starredTasks =new ArrayList<>();
-
 
 }

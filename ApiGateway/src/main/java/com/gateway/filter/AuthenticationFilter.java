@@ -26,32 +26,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
         super(Config.class);
     }
 
-    //    @Override
-//    public GatewayFilter apply(Config config) {
-//        return ((exchange, chain) -> {
-//            if (validator.isSecured.test(exchange.getRequest())) {
-//                //header contains token or not
-//                if (!exchange.getRequest().getHeaders().containsKey(HttpHeaders.AUTHORIZATION)) {
-//                    throw new RuntimeException("missing authorization header");
-//                }
-//
-//                String authHeader = exchange.getRequest().getHeaders().get(HttpHeaders.AUTHORIZATION).get(0);
-//                if (authHeader != null && authHeader.startsWith("Bearer ")) {
-//                    authHeader = authHeader.substring(7);
-//                }
-//                try {
-////                    //REST call to AUTH service
-////                    template.getForObject("http://IDENTITY-SERVICE//validate?token" + authHeader, String.class);
-//                    jwtUtil.validateToken(authHeader);
-//
-//                } catch (Exception e) {
-//                    System.out.println("invalid access...!");
-//                    throw new RuntimeException("un authorized access to application");
-//                }
-//            }
-//            return chain.filter(exchange);
-//        });
-//    }
+
     @Override
     public GatewayFilter apply(Config config) {
         return (exchange, chain) -> {
@@ -63,30 +38,7 @@ public class AuthenticationFilter extends AbstractGatewayFilterFactory<Authentic
             }
 
             String token = authHeader.substring(7);
-//        Claims claims = jwtUtil.extractAllClaims(token);
-
-            // Log claims for debugging
-//        System.out.println("JWT Claims: " + claims);
 //
-//        if (claims == null) {
-//            exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-//            return exchange.getResponse().setComplete();
-//        }
-//
-//        // Extract roles from the JWT claims
-//        List<String> roles = claims.get("roles", List.class);
-//
-//        // Log the extracted roles
-//        System.out.println("Extracted Roles: " + roles);
-//
-//        if (roles == null || roles.isEmpty()) {
-//            exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
-//            return exchange.getResponse().setComplete();
-//        }
-
-            // Add roles to the request header for downstream services to check
-//        exchange.getRequest().mutate().header("roles", String.join(",", roles)).build();
-
             return chain.filter(exchange);
         };
     }

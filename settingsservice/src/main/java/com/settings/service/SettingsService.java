@@ -26,6 +26,9 @@ public class SettingsService {
     private LanguageService languageService;
 
     @Autowired
+    private TimeZoneService timeZoneService;
+
+    @Autowired
     private ModelMapper modelMapper;
 
     public List<Settings> getAll() {

@@ -20,13 +20,15 @@ public class Role {
     @JsonIgnore
     private Integer id;
 
-    private String role;
 
+    private String role;
     @ManyToMany(mappedBy = "role")
     @JsonIgnore
     private Set<UserCredential> user;
-    // Constructor to accept a role name
+
     public Role(String role) {
         this.role = role;
     }
+    // Constructor to accept a role name
+
 }
