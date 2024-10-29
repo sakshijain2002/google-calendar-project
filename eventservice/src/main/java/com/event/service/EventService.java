@@ -217,7 +217,7 @@ public class EventService {
         String htmlTemplate = loadHtmlTemplate();
 
         // Use Optional or null checks to safely replace null values with default strings
-        String title = "You are invited to attend the" + event.getTitle()  != null ? event.getTitle() : "No Title";
+        String title =  event.getTitle()  != null ? event.getTitle() : "No Title";
 //        String day = event.getDay() != null ? event.getDay().toString() : "No Date";
         String formattedDate = "No Date"; // Default value
         Long dayInMillis = event.getDay(); // Assuming 'day' is of type Long representing milliseconds

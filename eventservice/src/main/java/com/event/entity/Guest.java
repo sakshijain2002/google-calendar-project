@@ -1,5 +1,6 @@
 package com.event.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -29,5 +30,6 @@ public class Guest {
 
 
     @ManyToMany(mappedBy = "guests",cascade =  CascadeType.REMOVE)
+    @JsonIgnore
     private Set<Event> events = new HashSet<>();
 }
