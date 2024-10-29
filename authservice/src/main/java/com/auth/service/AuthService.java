@@ -169,16 +169,26 @@ public class AuthService {
 //        return "No roles found"; // Or throw an exception if the user is not found
 //    }
     public UserActivityDto getUserActivity(String email) {
-        List<Task> tasks = taskClient.getTaskByEmail(email);
-        List<Event> events = eventClient.getByEmailId(email);
-        UserCredential credentials = repository.findByEmail(email).orElseThrow(()->new RuntimeException("data not found"));
+        UserCredential credentials = repository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("data not found"));
 
-        return new UserActivityDto(credentials,events,tasks);
+        // Initialize empty lists for tasks and events
+        List<Task> tasks = Collections.emptyList();
+        List<Event> events = Collections.emptyList();
+
+        // Only fetch tasks and events if the user's profile is public
+        if (credentials.getAccountStatus().equalsIgnoreCase("public")) {
+            tasks = taskClient.getTaskByEmail(email);
+            events = eventClient.getByEmailId(email);
+        }
+
+        // Return the UserActivityDto with user credentials, events, and tasks
+        return new UserActivityDto(credentials, events, tasks);
     }
 
     public void updateUserRole(UpdateRoleRequest updateRoleRequest) {
         String email = updateRoleRequest.getEmail();
-        String newRole = updateRoleRequest.getNewRole();
+        String role = updateRoleRequest.getRole();
 
         // Find the user by email
         Optional<UserCredential> userOptional = repository.findByEmail(email);
@@ -188,7 +198,7 @@ public class AuthService {
             UserCredential user = userOptional.get();
 
             // Update the user's role
-            user.updateRole(newRole, roleRepository);
+            user.updateRole(role, roleRepository);
 
             // Save the updated user
             repository.save(user);

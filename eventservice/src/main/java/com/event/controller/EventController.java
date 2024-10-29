@@ -3,6 +3,7 @@ package com.event.controller;
 import com.event.entity.Event;
 import com.event.entity.Trash;
 import com.event.service.EventService;
+import com.event.service.GuestService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +17,8 @@ public class EventController {
 
     @Autowired
     private EventService eventService;
+    @Autowired
+    private GuestService guestService;
 
 //    @GetMapping
 //    public List<Event> getAll(){
@@ -55,6 +58,7 @@ public class EventController {
     }
     @PutMapping("/addAllEvents")
     public List<Event> addTasks(@RequestBody List<Event> tasks,  @RequestHeader("Authorization") String authorizationHeader) {
+
         String token = authorizationHeader.replace("Bearer ", "");
         return eventService.addAllTasks(tasks,token);
     }
@@ -62,7 +66,7 @@ public class EventController {
     @PostMapping("/create-event")
     public Event addEvent(@RequestBody Event event,@RequestHeader("Authorization") String authorizationHeader){
         String token = authorizationHeader.replace("Bearer","");
-        return eventService.saveEvent(event,token);
+        return eventService.addEvent(event,token);
     }
 
     @DeleteMapping("/{id}/trash")
@@ -84,6 +88,7 @@ public class EventController {
         String token = authorizationHeader.replace("Bearer","");
         return eventService.getTrashedEventsByEmail(token); // You need to implement this in EventService
     }
+
 
 
 

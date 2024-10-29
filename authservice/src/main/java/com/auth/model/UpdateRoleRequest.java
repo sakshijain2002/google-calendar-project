@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class UpdateRoleRequest {
     private String email;
-    private String newRole;
+    private String role;
 }

@@ -1,11 +1,15 @@
 package com.event.service;
 
+import com.event.entity.Event;
 import com.event.entity.Guest;
+import com.event.repository.EventRepository;
 import com.event.repository.GuestRepository;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,6 +20,9 @@ public class GuestService {
     private GuestRepository guestRepository;
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private EventRepository eventRepository;
 
     @Autowired
     private EmailService emailSender;
@@ -44,5 +51,31 @@ public class GuestService {
        return record;
    }
 
+    @Transactional
+    public void updateInvitationStatus(String guestEmail, Long eventId, String status) {
+        Guest guest = guestRepository.findByEmailAndEventId(guestEmail, eventId).orElseThrow(()-> new RuntimeException("data not found"));
+        if (guest != null) {
+            guest.setInvitationStatus(status);
+            guestRepository.save(guest);
+        } else {
+            throw new RuntimeException("Guest or Event not found");
+        }
+    }
 
+    @Transactional
+    public String addGuestToEvent(String guestEmail, Long eventId, String status) {
+        // Retrieve or create Guest based on email
+
+        // Retrieve or create the Event by ID
+        List<Event> event = guestRepository.findEventsByGuestEmail(guestEmail);
+
+        eventRepository.saveAll(event);
+
+        return "Event has been added to your calendar!";
+    }
+
+
+    public List<Event> getByGuestEmail(String email){
+      return guestRepository.findEventsByGuestEmail(email);
+    }
 }

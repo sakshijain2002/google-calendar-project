@@ -1,6 +1,7 @@
 package com.event.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,6 +9,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -40,8 +42,11 @@ public class Event {
 
     private Set<Guest> guests;
 
+
     @JsonIgnore
     private String email;
+
+    // Method to convert emails to Guest entities and add them to guests
 
 
 }

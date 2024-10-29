@@ -1,8 +1,10 @@
 package com.event.controller;
 
+import com.event.entity.Event;
 import com.event.entity.Guest;
 import com.event.service.GuestService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -36,6 +38,26 @@ public class GuestController {
     @PutMapping("/update/{id}")
     public Guest updateRecordById(@PathVariable Long id,@RequestBody Guest guest){
         return guestService.updateRecordById(id,guest);
+    }
+
+    @GetMapping("/addToCalendar")
+    public ResponseEntity<String> addToCalendar(
+            @RequestParam("guestEmail") String guestEmail,
+            @RequestParam("eventId") Long eventId,
+            @RequestParam("status") String status) {
+
+        String result = guestService.addGuestToEvent(guestEmail, eventId, status);
+
+        if (result.equals("Event not found")) {
+            return ResponseEntity.status(404).body(result);
+        }
+
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/get/{email}")
+    public List<Event> findEventsByGuestEmail(@PathVariable String email){
+        return guestService.getByGuestEmail(email);
     }
 
 }

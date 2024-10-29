@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -19,12 +20,14 @@ public class Guest {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
+
     private String email;
 
-    private Long guestPermissionId;
-    private String eventStatus;
+    private String invitationStatus;
+    private Long eventId;
 
 
     @ManyToMany(mappedBy = "guests",cascade =  CascadeType.REMOVE)
-    private Set<Event> events;
+    private Set<Event> events = new HashSet<>();
 }

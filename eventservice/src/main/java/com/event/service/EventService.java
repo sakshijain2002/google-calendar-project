@@ -6,13 +6,23 @@ import com.event.entity.Trash;
 import com.event.model.UserModel;
 import com.event.repository.EventRepository;
 import com.event.repository.TrashRepository;
+import com.event.util.DateUtil;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang.time.DateFormatUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.modelmapper.ModelMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
+import java.io.UnsupportedEncodingException;
+
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -31,6 +41,7 @@ public class EventService {
 
     @Autowired
     private TrashRepository trashRepository;
+    private Logger logger = LoggerFactory.getLogger(EmailService.class);
 
 
     public List<Event> getAll(){
@@ -60,10 +71,17 @@ public class EventService {
         // Save the events with their guests first
         List<Event> savedEvents = new ArrayList<>();
 
+
+
         // Iterate through each event
         for (Event event : events) {
             // Set the organizer's email for the event
             event.setEmail(userEmail);
+
+            Long dayInMillis = event.getDay();
+
+            // Optionally, convert it to LocalDateTime if you need to work with it as a date
+            LocalDateTime dateTime = DateUtil.fromMillis(dayInMillis);
 
             // Process guests if they are present in the event
             if (event.getGuests() != null) {
@@ -72,7 +90,8 @@ public class EventService {
                     // Create a new Guest object to avoid transient instance errors
                     Guest managedGuest = new Guest();
                     managedGuest.setEmail(guest.getEmail());  // Set guest email
-                    managedGuest.setGuestPermissionId(guest.getGuestPermissionId());  // Set guest permission ID
+                   // Set guest permission ID
+                    managedGuest.setEventId(event.getId());
                     managedGuests.add(managedGuest);  // Add to the set of managed guests
                 }
                 event.setGuests(managedGuests);  // Assign the managed guests to the event
@@ -82,25 +101,24 @@ public class EventService {
 
             // Send HTML email invitations to guests after the event is saved
             if (savedEvent.getGuests() != null && !savedEvent.getGuests().isEmpty()) {
-                String subject = "You're invited: " + savedEvent.getTitle();
-                String htmlContent = generateEmailHtmlContent(savedEvent);  // Generate the HTML content for the email
-                // Send email to all guests individually
+                String subject = "You're invited: " + savedEvent.getTitle() ;
+                for (Guest guest : savedEvent.getGuests()) {
+                    String htmlContent = null;
+                    try {
+                        htmlContent = generateEmailHtmlContent(savedEvent, guest);
+                    } catch (UnsupportedEncodingException e) {
+                        throw new RuntimeException(e);
+                    }
+//            String htmlContent = generateEmailHtmlContent(savedEvent,guest);
 
-                    emailService.sendEmailWithHtmlToGuests(savedEvent.getGuests(), subject, htmlContent,userEmail);
-
+                    // Send email to all guests
+                    emailService.sendEmailWithHtmlToGuests(savedEvent.getGuests(), subject, htmlContent, userEmail);
+                }
             }
         }
-
         // Return all saved events
         return savedEvents;
-
-            // Save the event and its guests
         }
-
-
-
-    // Save and return all events along with their guests
-
 
     @Transactional
     public Event addEvent(Event event, String token) {
@@ -115,7 +133,7 @@ public class EventService {
                 // Create a new Guest object to avoid transient instance errors
                 Guest managedGuest = new Guest();
                 managedGuest.setEmail(guest.getEmail()); // Set the name from the guest DTO
-                managedGuest.setGuestPermissionId(guest.getGuestPermissionId()); // Set permission ID
+               // Set permission ID
                 managedGuests.add(managedGuest); // Add to managed guests set
             }
             event.setGuests(managedGuests); // Assign the managed guests to the event
@@ -125,12 +143,19 @@ public class EventService {
         // Send HTML emails to all guests
         if (savedEvent.getGuests() != null && !savedEvent.getGuests().isEmpty()) {
             String subject = "You're invited: " + savedEvent.getTitle();
-            String htmlContent = generateEmailHtmlContent(savedEvent);
+            for (Guest guest : savedEvent.getGuests()) {
+                String htmlContent = null;
+                try {
+                    htmlContent = generateEmailHtmlContent(savedEvent, guest);
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
+//            String htmlContent = generateEmailHtmlContent(savedEvent,guest);
 
-            // Send email to all guests
-            emailService.sendEmailWithHtmlToGuests(savedEvent.getGuests(), subject, htmlContent,userEmail);
+                // Send email to all guests
+                emailService.sendEmailWithHtmlToGuests(savedEvent.getGuests(), subject, htmlContent, userEmail);
+            }
         }
-
         return savedEvent;
 
         // Save the event with guests return eventRepository.save(event);
@@ -184,75 +209,41 @@ public class EventService {
         Trash trash = trashRepository.findById(trashId)
                 .orElseThrow(() -> new RuntimeException("Trash entry not found"));
 
-         //Restore the event
-//        Event event = new Event();
-//        event.setId(trash.getId());
-//        event.setTitle(trash.getTitle());
-//        event.setDescription(trash.getDescription());
-//        event.setLabel(trash.getLabel());
-//        event.setEmail(trash.getEmail());
-//
-//        eventRepository.save(event);
-
-        // Remove the entry from the Trash table
         trashRepository.delete(trash);
-    }
-    public Event saveEvent(Event event, String token) {
-        // Extract user email from the token
-        String userEmail = userServiceClient.extractEmailFromToken(token);
-        event.setEmail(userEmail); // Set the email in the event
-
-        // Ensure guests are processed correctly
-        if (event.getGuests() != null) {
-            Set<Guest> managedGuests = new HashSet<>();
-            for (Guest guest : event.getGuests()) {
-                // Create a new Guest object to avoid transient instance errors
-                Guest managedGuest = new Guest();
-                managedGuest.setEmail(guest.getEmail());
-                managedGuest.setGuestPermissionId(guest.getGuestPermissionId());
-                managedGuests.add(managedGuest);
-            }
-            event.setGuests(managedGuests); // Assign the managed guests to the event
-        }
-
-        // Save the event with guests
-        Event savedEvent = eventRepository.save(event);
-
-        // Send HTML emails to all guests
-        if (savedEvent.getGuests() != null && !savedEvent.getGuests().isEmpty()) {
-            String subject = "You're invited: " + savedEvent.getTitle();
-            String htmlContent = generateEmailHtmlContent(savedEvent);
-
-            // Send email to all guests
-            emailService.sendEmailWithHtmlToGuests(savedEvent.getGuests(), subject, htmlContent,userEmail);
-        }
-
-        return savedEvent;
     }
 
     // Generate email HTML content (as before)
-    private String generateEmailHtmlContent(Event event) {
+    private String generateEmailHtmlContent(Event event, Guest guest) throws UnsupportedEncodingException {
         String htmlTemplate = loadHtmlTemplate();
 
         // Use Optional or null checks to safely replace null values with default strings
-        String title = event.getTitle() != null ? event.getTitle() : "No Title";
-        String day = event.getDay() != null ? event.getDay().toString() : "No Date";
-        String description = event.getDescription() != null ? event.getDescription() : "No Description";
+        String title = "You are invited to attend the" + event.getTitle()  != null ? event.getTitle() : "No Title";
+//        String day = event.getDay() != null ? event.getDay().toString() : "No Date";
+        String formattedDate = "No Date"; // Default value
+        Long dayInMillis = event.getDay(); // Assuming 'day' is of type Long representing milliseconds
 
-//        String time = event.getTime() != null ? event.getTime().toString() : "10:00 AM"; // Assuming 'event.getTime()' returns a time
+        if (dayInMillis != null) {
+            LocalDateTime localDateTime = LocalDateTime.ofInstant(
+                    Instant.ofEpochMilli(dayInMillis),
+                    ZoneId.systemDefault()
+            );
+
+            // Format LocalDateTime to a user-friendly string
+            formattedDate = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        }
+        String description = event.getDescription() != null ? event.getDescription() : "No Description";
+        // Uncomment this if time is part of the Event object
+        // String time = event.getTime() != null ? event.getTime().toString() : "10:00 AM";
 
         String htmlContent = htmlTemplate
                 .replace("{{eventTitle}}", title)
-                .replace("{{eventDate}}", day)
-//                .replace("{{eventTime}}", time)
-//                .replace("{{eventLocation}}", location)
-                .replace("{{eventDescription}}", description)
-                .replace("{{acceptLink}}", "http://example.com/accept?eventId=" + event.getId())
-                .replace("{{declineLink}}", "http://example.com/decline?eventId=" + event.getId())
-                .replace("{{tentativeLink}}", "http://example.com/tentative?eventId=" + event.getId());
+                .replace("{{eventDate}}", formattedDate)
+                .replace("{{eventDescription}}", description);
 
         return htmlContent;
     }
+
+
 
     // Load HTML template (polished to look more like Google Calendar)
     private String loadHtmlTemplate() {
@@ -277,15 +268,8 @@ public class EventService {
                 "</div>" +
                 "<div class='details'>" +
                 "  <p><strong>Date:</strong> {{eventDate}}</p>" +
-                "  <p><strong>Time:</strong> {{eventTime}}</p>" +
-                "  <p><strong>Location:</strong> {{eventLocation}}</p>" +
                 "  <p><strong>Description:</strong> {{eventDescription}}</p>" +
-                "</div>" +
-                "<div class='action-buttons'>" +
-                "  <a class='button' href='{{acceptLink}}'>Accept</a>" +
-                "  <a class='button' href='{{declineLink}}'>Decline</a>" +
-                "  <a class='button' href='{{tentativeLink}}'>Tentative</a>" +
-                "</div>" +
+
                 "</body>" +
                 "</html>";
     }
@@ -295,9 +279,6 @@ public class EventService {
         email = userServiceClient.extractEmailFromToken(token);
         // Call the repository method to find trashed events by email
         return trashRepository.findByEmail(email);
-    }
-    public List<Event> getAllActiveEvents() {
-        return eventRepository.findAll(); // Modify as needed to filter only active events if needed.
     }
 
 }
