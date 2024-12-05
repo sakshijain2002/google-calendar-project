@@ -123,10 +123,6 @@ public class AuthController {
 
     }
 
-//    @PutMapping("/update/{id}")
-//    public UserCredential updateRecordById(@PathVariable Integer id,@RequestBody UserCredential userCredential){
-//        return service.updateRecordById(id,userCredential);
-//    }
 
     @PutMapping("/update/user")
     public ResponseEntity<UserCredential> updateUserProfile(
@@ -154,12 +150,6 @@ public class AuthController {
     public String getAdminDashboard() {
         return "Admin Dashboard";
     }
-
-//    @GetMapping("/getRole/{email}")
-//    public String getRoleById(@PathVariable String email) {
-//        return service.getRolesByEmail(email);
-//    }
-
 
     @GetMapping("/email")
     public String getEmail(@RequestHeader("Authorization") String authorizationHeader) {

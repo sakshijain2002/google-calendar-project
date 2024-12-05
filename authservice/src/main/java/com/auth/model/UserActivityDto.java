@@ -17,16 +17,7 @@ public class UserActivityDto {
         private List<Event> savedEvents;
 
         private UserCredential credentials;
-//        private String name;
-//        private String role;
-//
-//        private String email;
-//        private String accountStatus;
-//        private Long phno;
-//
-//        private String gender;
-//
-//    private String profilePicture ="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg";
+
 
         public UserActivityDto(UserCredential credentials,List<Event> savedEvents,List<Task> savedTasks) {
             this.credentials =credentials;

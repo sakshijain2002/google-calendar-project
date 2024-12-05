@@ -30,7 +30,7 @@ public class Trash {
     private String label;
     @JsonIgnore
     private String email;
-    // You can also add a deletedAt field to store when it was trashed
+
     private LocalDateTime deletedAt;
 
 }

@@ -65,12 +65,6 @@ public class JwtService {
     }
 
 
-//    public String generateToken(String email){
-//        Map<String,Object> claims=new HashMap<>();
-//        return createToken(claims,email);
-//    }
-
-
     private String createToken(Map<String, Object> claims, String email) {
         return Jwts.builder()
                 .setClaims(claims)
@@ -87,20 +81,14 @@ public class JwtService {
     }
 
     public String generateToken(String email) {
-        // Retrieve user details (including roles) from the UserDetailsService
         UserDetails userDetails = userDetailsService.loadUserByUsername(email);
-
-        // Extract roles from CustomUserDetails
         List<String> roles = userDetails.getAuthorities()
                 .stream()
                 .map(GrantedAuthority::getAuthority) // Convert GrantedAuthority to String
                 .collect(Collectors.toList());
-
-        // Create claims map and add roles
         Map<String, Object> claims = new HashMap<>();
         claims.put("roles", roles);
 
-        // Create and return the token with the claims
         return createToken(claims, email);
     }
 

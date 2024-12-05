@@ -83,7 +83,7 @@ public class EmailService {
             String guestEmail = guest.getEmail();
             if (guestEmail == null || !isValidEmail(guestEmail)) {
                 logger.warn("Invalid email for guest: {}", guestEmail);
-                continue; // Skip sending email to this guest
+                continue;
             }
 
             try {
@@ -92,8 +92,8 @@ public class EmailService {
 
                 helper.setTo(guestEmail);
                 helper.setSubject(subject);
-                helper.setText(htmlContent, true); // true indicates HTML content
-                helper.setFrom(eventCreatorMail); // Replace with your actual sender email
+                helper.setText(htmlContent, true);
+                helper.setFrom(eventCreatorMail);
 
                 mailSender.send(mimeMessage);
                 logger.info("Email sent successfully to {}", guestEmail);
@@ -103,7 +103,7 @@ public class EmailService {
         }
     }
 
-    // Email validation method (you can customize the regex as needed)
+
     private boolean isValidEmail(String email) {
         String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"; // Basic email regex
         return email.matches(emailRegex);

@@ -16,10 +16,11 @@ public class RefreshToken {
     @Id
     @GeneratedValue(strategy=GenerationType.IDENTITY)
     private int id;
-//    @Column(unique = true)
+
     private String refreshToken;
     private Instant expiryDate;
-    @OneToOne(cascade = CascadeType.ALL)
+    @OneToOne(cascade = {CascadeType.PERSIST, CascadeType.MERGE}) // Only PERSIST and MERGE
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     private UserCredential userCredential;
+
 }

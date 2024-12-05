@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import java.util.List;
 
 @FeignClient(name = "event-service", url = "http://localhost:8087")
-    public interface EventClient {
+public interface EventClient {
 
     @GetMapping("/event/getByEmail/{email}")
     public List<Event> getByEmailId(@PathVariable String email);

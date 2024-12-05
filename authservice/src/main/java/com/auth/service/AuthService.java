@@ -45,18 +45,11 @@ public class AuthService {
     @Autowired
     private EventClient eventClient;
     public Map<String, Object> saveUser(UserCredential userCredential) {
-        // Encrypt the password
         userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
-
-        // Check if the email already exists
         if (repository.existsByEmail(userCredential.getEmail())) {
             throw new RuntimeException("Email address already exists.");
         }
-
-        // Save the user with roles
         UserCredential savedUser = repository.save(userCredential);
-
-        // Prepare the response
         Map<String, Object> response = new HashMap<>();
         response.put("userId", savedUser.getId());
         response.put("message", "User created successfully");
@@ -77,15 +70,12 @@ public class AuthService {
     }
 
     public UserCredential getProfileFromJwt(String accessToken) {
-        // Parse the JWT token to extract claims (like username or userId)
         Claims claims = Jwts.parser()
-                .setSigningKey(secretKey) // Use your secret key to validate the token
+                .setSigningKey(secretKey)
                 .parseClaimsJws(accessToken)
                 .getBody();
 
-        String email = claims.getSubject(); // Assuming the 'sub' field contains the username
-
-        // Fetch user credentials from the repository by username (or another identifier)
+        String email = claims.getSubject();
         return repository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User profile not found with email" + email));
     }
@@ -100,11 +90,8 @@ public class AuthService {
         UserCredential user = repository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Clear the user-role associations
         user.getRole().clear();
         repository.save(user);
-
-        // Now delete the user
         repository.delete(user);
     }
 
@@ -122,24 +109,24 @@ public class AuthService {
 
     public UserCredential updateUserProfileByToken(UserCredential record, String accessToken) {
 
-        // Extract email (subject) from the JWT token
+
         Claims claims = Jwts.parser()
-                .setSigningKey(secretKey) // Use your secret key to validate the token
+                .setSigningKey(secretKey)
                 .parseClaimsJws(accessToken)
                 .getBody();
 
         String email = claims.getSubject();
 
-        // Find the user by email
+
         Optional<UserCredential> userRecord = repository.findByEmail(email);
         if (userRecord.isPresent()) {
             UserCredential user = userRecord.get();
 
-            // Use ModelMapper to map non-null fields from the incoming record to the existing user
+
             modelMapper.getConfiguration().setSkipNullEnabled(true);
             modelMapper.map(record, user);
 
-            // Save the updated user back to the repository
+
             repository.save(user);
 
             return user;
@@ -157,32 +144,22 @@ public class AuthService {
         return jwtService.extractEmail(token);
     }
 
-//    public String getRolesByEmail(String email) {
-//        Optional<UserCredential> user = repository.findByEmail(email);
-//        if (user.isPresent()) {
-//            // Get the roles and join the role names as a comma-separated string
-//            Set<Role> roles = user.get().getRole();
-//            return roles.stream()
-//                    .map(Role::getRole)  // Convert Role object to role name string
-//                    .collect(Collectors.joining(", "));  // Join role names into a single string
-//        }
-//        return "No roles found"; // Or throw an exception if the user is not found
-//    }
+
     public UserActivityDto getUserActivity(String email) {
         UserCredential credentials = repository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("data not found"));
 
-        // Initialize empty lists for tasks and events
+
         List<Task> tasks = Collections.emptyList();
         List<Event> events = Collections.emptyList();
 
-        // Only fetch tasks and events if the user's profile is public
+
         if (credentials.getAccountStatus().equalsIgnoreCase("public")) {
             tasks = taskClient.getTaskByEmail(email);
             events = eventClient.getByEmailId(email);
         }
 
-        // Return the UserActivityDto with user credentials, events, and tasks
+
         return new UserActivityDto(credentials, events, tasks);
     }
 
@@ -190,17 +167,13 @@ public class AuthService {
         String email = updateRoleRequest.getEmail();
         String role = updateRoleRequest.getRole();
 
-        // Find the user by email
+
         Optional<UserCredential> userOptional = repository.findByEmail(email);
 
         if (userOptional.isPresent()) {
-            // Get the user
+
             UserCredential user = userOptional.get();
-
-            // Update the user's role
             user.updateRole(role, roleRepository);
-
-            // Save the updated user
             repository.save(user);
         } else {
             throw new RuntimeException("User with email " + email + " not found");

@@ -64,43 +64,32 @@ public class EventService {
         return eventRepository.findById(id).orElseThrow(()->new RuntimeException("data not found"));
     }
 
+
+    @Transactional
     public List<Event> addAllTasks(List<Event> events, String token) {
-        // Extract the user email from the token
         String userEmail = userServiceClient.extractEmailFromToken(token);
-
-        // Save the events with their guests first
         List<Event> savedEvents = new ArrayList<>();
-
-
-
-        // Iterate through each event
         for (Event event : events) {
-            // Set the organizer's email for the event
             event.setEmail(userEmail);
 
             Long dayInMillis = event.getDay();
-
-            // Optionally, convert it to LocalDateTime if you need to work with it as a date
             LocalDateTime dateTime = DateUtil.fromMillis(dayInMillis);
-
-            // Process guests if they are present in the event
             if (event.getGuests() != null) {
                 Set<Guest> managedGuests = new HashSet<>();
                 for (Guest guest : event.getGuests()) {
-                    // Create a new Guest object to avoid transient instance errors
                     Guest managedGuest = new Guest();
                     managedGuest.setEmail(guest.getEmail());  // Set guest email
-                   // Set guest permission ID
                     managedGuest.setEventId(event.getId());
-                    managedGuests.add(managedGuest);  // Add to the set of managed guests
+                    managedGuests.add(managedGuest);
                 }
-                event.setGuests(managedGuests);  // Assign the managed guests to the event
+                event.setGuests(managedGuests);
             }
+
             Event savedEvent = eventRepository.save(event);
             savedEvents.add(savedEvent);
 
-            // Send HTML email invitations to guests after the event is saved
-            if (savedEvent.getGuests() != null && !savedEvent.getGuests().isEmpty()) {
+
+            if (savedEvent.getGuests() != null && !savedEvent.getGuests().isEmpty() && !savedEvent.isEmailSent())  {
                 String subject = "You're invited: " + savedEvent.getTitle() ;
                 for (Guest guest : savedEvent.getGuests()) {
                     String htmlContent = null;
@@ -114,6 +103,8 @@ public class EventService {
                     // Send email to all guests
                     emailService.sendEmailWithHtmlToGuests(savedEvent.getGuests(), subject, htmlContent, userEmail);
                 }
+                savedEvent.setEmailSent(true);
+                eventRepository.save(savedEvent); //
             }
         }
         // Return all saved events
@@ -150,15 +141,15 @@ public class EventService {
                 } catch (UnsupportedEncodingException e) {
                     throw new RuntimeException(e);
                 }
-//            String htmlContent = generateEmailHtmlContent(savedEvent,guest);
 
-                // Send email to all guests
+
+
                 emailService.sendEmailWithHtmlToGuests(savedEvent.getGuests(), subject, htmlContent, userEmail);
             }
         }
         return savedEvent;
 
-        // Save the event with guests return eventRepository.save(event);
+
     }
 
     public void deleteById(Long id){
@@ -188,7 +179,7 @@ public class EventService {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new RuntimeException("Event not found"));
 
-        // Create a Trash entry
+
         Trash trash = new Trash();
         trash.setId(event.getId());
         trash.setTitle(event.getTitle());
@@ -200,11 +191,10 @@ public class EventService {
 
         trashRepository.save(trash);
 
-        // Delete the event from the Event table
         eventRepository.delete(event);
     }
 
-    // Restore event from Trash table to Event table
+
     public void restoreFromTrash(Long trashId) {
         Trash trash = trashRepository.findById(trashId)
                 .orElseThrow(() -> new RuntimeException("Trash entry not found"));
@@ -212,13 +202,13 @@ public class EventService {
         trashRepository.delete(trash);
     }
 
-    // Generate email HTML content (as before)
+
     private String generateEmailHtmlContent(Event event, Guest guest) throws UnsupportedEncodingException {
         String htmlTemplate = loadHtmlTemplate();
 
-        // Use Optional or null checks to safely replace null values with default strings
+
         String title =  event.getTitle()  != null ? event.getTitle() : "No Title";
-//        String day = event.getDay() != null ? event.getDay().toString() : "No Date";
+
         String formattedDate = "No Date"; // Default value
         Long dayInMillis = event.getDay(); // Assuming 'day' is of type Long representing milliseconds
 
@@ -228,12 +218,10 @@ public class EventService {
                     ZoneId.systemDefault()
             );
 
-            // Format LocalDateTime to a user-friendly string
             formattedDate = localDateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         }
         String description = event.getDescription() != null ? event.getDescription() : "No Description";
-        // Uncomment this if time is part of the Event object
-        // String time = event.getTime() != null ? event.getTime().toString() : "10:00 AM";
+
 
         String htmlContent = htmlTemplate
                 .replace("{{eventTitle}}", title)
@@ -277,7 +265,7 @@ public class EventService {
     public List<Trash> getTrashedEventsByEmail(String token) {
         String email;
         email = userServiceClient.extractEmailFromToken(token);
-        // Call the repository method to find trashed events by email
+
         return trashRepository.findByEmail(email);
     }
 

@@ -29,7 +29,7 @@ public class Guest {
     private Long eventId;
 
 
-    @ManyToMany(mappedBy = "guests",cascade =  CascadeType.REMOVE)
+    @ManyToMany(mappedBy = "guests",cascade =  CascadeType.PERSIST)
     @JsonIgnore
     private Set<Event> events = new HashSet<>();
 }

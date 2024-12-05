@@ -23,30 +23,26 @@ public class Event {
     private Long id;
     private String title;
     private Long day;
-//    private String eventTime;
-//    private Boolean allDay;
-//    private String repeatType;
-//    private String Location;
+
     private String description;
-//    private Long timeZoneId;
+
 
     private String label;
 
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.MERGE)
     @JoinTable(
             name = "event_guests",
             joinColumns = @JoinColumn(name = "event_id"),
             inverseJoinColumns = @JoinColumn(name = "guest_id")
     )
-
     private Set<Guest> guests;
 
 
     @JsonIgnore
     private String email;
 
-    // Method to convert emails to Guest entities and add them to guests
 
+    private boolean emailSent = false;
 
 }
