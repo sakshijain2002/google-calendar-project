@@ -22,7 +22,7 @@ public class Role {
 
 
     private String role = "user";
-    @ManyToMany(mappedBy = "role")
+    @OneToMany(mappedBy = "role")
     @JsonIgnore
     private Set<UserCredential> user;
 

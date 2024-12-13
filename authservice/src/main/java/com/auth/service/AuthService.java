@@ -139,27 +139,19 @@ public class AuthService {
     public String generateToken(String username) {
         return jwtService.generateToken(username);
     }
-
     public String extractEmail(String token) {
         return jwtService.extractEmail(token);
     }
-
-
     public UserActivityDto getUserActivity(String email) {
         UserCredential credentials = repository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("data not found"));
-
-
         List<Task> tasks = Collections.emptyList();
         List<Event> events = Collections.emptyList();
-
 
         if (credentials.getAccountStatus().equalsIgnoreCase("public")) {
             tasks = taskClient.getTaskByEmail(email);
             events = eventClient.getByEmailId(email);
         }
-
-
         return new UserActivityDto(credentials, events, tasks);
     }
 

@@ -50,49 +50,32 @@ public class AuthController {
 
     @GetMapping("/get/user")
     public UserCredential getProfile(@RequestHeader("Authorization") String authorizationHeader) {
-        // Extract the token from the Authorization header (assumes "Bearer <token>" format)
         String token = authorizationHeader.replace("Bearer ", "");
-
-        // Pass the extracted token to your service
         return service.getProfileFromJwt(token);
     }
 
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> createUser(@RequestBody UserCredential userCredential) {
         try {
-            // Call the service method to save the user and get the response
             Map<String, Object> response = service.saveUser(userCredential);
-
-            // Return the response with HTTP status 201 (Created)
             return new ResponseEntity<>(response, HttpStatus.CREATED);
         } catch (RuntimeException e) {
-            // Handle known exceptions (e.g., email already exists)
             return new ResponseEntity<>(Map.of("message", e.getMessage()), HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            // Handle other unexpected exceptions
             return new ResponseEntity<>(Map.of("message", "An unexpected error occurred"), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
-
     @PostMapping("/token")
     public JwtResponse getToken(@RequestBody AuthRequest authRequest) {
         try {
-            // Authenticate the user
             Authentication authenticate = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(authRequest.getEmail(), authRequest.getPassword())
             );
 
             if (authenticate.isAuthenticated()) {
-
-                // Check if a refresh token already exists for this user
                 RefreshToken existingToken = refreshTokenService.findByEmail(authRequest.getEmail())
                         .orElseGet(() -> refreshTokenService.createRefreshToken(authRequest.getEmail()));
-
-                // Generate new access token
-//            String accessToken = service.generateToken(authRequest.getUsername());
-
-                // Return response with new access token and existing or new refresh token
                 return JwtResponse.builder()
                         .accessToken(service.generateToken(authRequest.getEmail()))
                         .refreshToken(existingToken.getRefreshToken())
@@ -101,7 +84,7 @@ public class AuthController {
                 throw new RuntimeException("Invalid credentials or access denied");
             }
         } catch (Exception e) {
-            // Log the exception and provide a meaningful error response
+
             System.err.println("Error during token generation: " + e.getMessage());
             throw new RuntimeException("Error during token generation");
         }
@@ -129,11 +112,9 @@ public class AuthController {
             @RequestBody UserCredential userProfile,
             HttpServletRequest request) {
 
-        // Extract JWT token from the Authorization header
-        String accessToken = request.getHeader("Authorization").substring(7); // Remove 'Bearer ' from the token
+        String accessToken = request.getHeader("Authorization").substring(7);
 
         try {
-            // Update the user profile using the JWT token
             UserCredential updatedUser = service.updateUserProfileByToken(userProfile, accessToken);
             return ResponseEntity.ok(updatedUser);
 
@@ -170,7 +151,6 @@ public class AuthController {
 
     @GetMapping("/search/{email}")
     public UserActivityDto getUserActivity(@PathVariable String email) {
-        // Extract JWT token without "Bearer " prefix
         return service.getUserActivity(email);
     }
     @PutMapping("/admin/change-role")

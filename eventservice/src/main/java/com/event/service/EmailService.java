@@ -9,9 +9,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
+import java.util.Properties;
 import java.util.Set;
 
 @Service
@@ -103,6 +105,23 @@ public class EmailService {
         }
     }
 
+    public JavaMailSender createMailSender(String email, String password) {
+        JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
+
+        // Configure SMTP server
+        mailSender.setHost("smtp.gmail.com");  // Use the correct SMTP server
+        mailSender.setPort(587);  // Port for Gmail SMTP
+        mailSender.setUsername(email);  // Event creator's email
+        mailSender.setPassword(password);  // Event creator's email password (or App password if 2FA is enabled)
+
+        // Set additional SMTP properties (TLS and SSL)
+        Properties props = mailSender.getJavaMailProperties();
+        props.put("mail.smtp.auth", "true");
+        props.put("mail.smtp.starttls.enable", "true");
+        props.put("mail.smtp.ssl.trust", "smtp.gmail.com");
+
+        return mailSender;
+    }
 
     private boolean isValidEmail(String email) {
         String emailRegex = "^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"; // Basic email regex

@@ -25,7 +25,6 @@ public class NotificationService {
          return notificationRepository.findById(id).orElseThrow(()->new RuntimeException("data not found"));
      }
 
-
      public Notification saveNotification(Notification notification){
          return notificationRepository.save(notification);
      }
@@ -33,6 +32,7 @@ public class NotificationService {
      public void deleteById(Long id){
          notificationRepository.deleteById(id);
      }
+
     public Notification updateRecordById(Long id, Notification record) {
 
         Optional<Notification> notificationRecord = notificationRepository.findById(id);
