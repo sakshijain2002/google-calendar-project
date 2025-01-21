@@ -46,10 +46,7 @@ public class TaskController {
         String token = authorizationHeader.replace("Bearer ", "");
         return taskService.addAllTasks(tasks,token);
 }
-//    @PutMapping("/addTask/{email}")
-//    public Task addTask(@RequestBody Task task,@PathVariable String email){
-//        return taskService.addTask(task,email);
-//    }
+
     @PostMapping("/addTask")
     public Task addTask(@RequestBody Task task, @RequestHeader("Authorization") String authorizationHeader) {
         String token = authorizationHeader.replace("Bearer ", "");

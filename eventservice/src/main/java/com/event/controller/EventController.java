@@ -20,10 +20,6 @@ public class EventController {
     @Autowired
     private GuestService guestService;
 
-//    @GetMapping
-//    public List<Event> getAll(){
-//        return eventService.getAll();
-//    }
     @GetMapping
     public List<Event> getTask(@RequestHeader("Authorization") String token) {
         return eventService.getAllEvent(token);
@@ -43,11 +39,8 @@ public class EventController {
         return eventService.getEventByEmail(email);
     }
 
-//    @PostMapping("/add/{email}")
-//    public Event saveEventByEmail(@RequestBody Event event, @PathVariable String email){
-//
-//        return eventService.saveEventByEmail(event,email);
-//    }
+
+
     @DeleteMapping("/delete/{id}")
     public void deleteById(@PathVariable Long id){
         eventService.deleteById(id);

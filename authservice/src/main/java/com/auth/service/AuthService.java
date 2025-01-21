@@ -10,8 +10,10 @@ import com.auth.model.UserActivityDto;
 import com.auth.repository.RoleRepository;
 import com.auth.repository.UserCredentialRepository;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.transaction.Transactional;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -44,12 +46,42 @@ public class AuthService {
 
     @Autowired
     private EventClient eventClient;
+//    public Map<String, Object> saveUser(UserCredential userCredential) {
+//        userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
+//        if (repository.existsByEmail(userCredential.getEmail())) {
+//            throw new RuntimeException("Email address already exists.");
+//        }
+//        UserCredential savedUser = repository.save(userCredential);
+//        Map<String, Object> response = new HashMap<>();
+//        response.put("userId", savedUser.getId());
+//        response.put("message", "User created successfully");
+//
+//        return response;
+//    }
+
+    @Transactional
     public Map<String, Object> saveUser(UserCredential userCredential) {
+        // Encode the password
         userCredential.setPassword(passwordEncoder.encode(userCredential.getPassword()));
+
+        // Check if the email already exists
         if (repository.existsByEmail(userCredential.getEmail())) {
             throw new RuntimeException("Email address already exists.");
         }
+
+        // Ensure roles are unique and properly persisted
+        Set<Role> validRoles = new HashSet<>();
+        for (Role role : userCredential.getRole()) {
+            Role existingRole = roleRepository.findByRole(role.getRole())
+                    .orElseGet(() -> roleRepository.save(new Role(role.getRole()))); // Save if not found
+            validRoles.add(existingRole);
+        }
+        userCredential.setRole(validRoles);
+
+        // Save the user
         UserCredential savedUser = repository.save(userCredential);
+
+        // Create the response
         Map<String, Object> response = new HashMap<>();
         response.put("userId", savedUser.getId());
         response.put("message", "User created successfully");
@@ -107,32 +139,44 @@ public class AuthService {
         return record;
     }
 
+    @Transactional
     public UserCredential updateUserProfileByToken(UserCredential record, String accessToken) {
-
-
-        Claims claims = Jwts.parser()
-                .setSigningKey(secretKey)
-                .parseClaimsJws(accessToken)
-                .getBody();
+        Claims claims;
+        try {
+            claims = Jwts.parser()
+                    .setSigningKey(secretKey)
+                    .parseClaimsJws(accessToken)
+                    .getBody();
+        } catch (JwtException e) {
+            throw new SecurityException("Invalid or expired token.", e);
+        }
 
         String email = claims.getSubject();
-
-
         Optional<UserCredential> userRecord = repository.findByEmail(email);
-        if (userRecord.isPresent()) {
-            UserCredential user = userRecord.get();
 
-
-            modelMapper.getConfiguration().setSkipNullEnabled(true);
-            modelMapper.map(record, user);
-
-
-            repository.save(user);
-
-            return user;
-        } else {
+        if (userRecord.isEmpty()) {
             throw new EntityNotFoundException("User not found for email: " + email);
         }
+
+        UserCredential user = userRecord.get();
+
+        // Update roles if provided
+        if (record.getRole() != null && !record.getRole().isEmpty()) {
+            Set<Role> updatedRoles = new HashSet<>();
+            for (Role role : record.getRole()) {
+                Role existingRole = roleRepository.findByRole(role.getRole())
+                        .orElseThrow(() -> new RuntimeException("Role '" + role.getRole() + "' not found in the database."));
+                updatedRoles.add(existingRole);
+            }
+            user.setRole(updatedRoles);
+        }
+
+        // Map other fields
+        modelMapper.getConfiguration().setSkipNullEnabled(true);
+        modelMapper.map(record, user);
+
+        // Save updated user
+        return repository.save(user);
     }
 
 

@@ -1,5 +1,6 @@
 package com.auth.entity;
 
+import com.auth.enums.PredefinedRole;
 import com.auth.repository.RoleRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -28,13 +29,14 @@ public class UserCredential {
 
     private String profilePicture ="https://upload.wikimedia.org/wikipedia/commons/a/ac/Default_pfp.jpg";
 
-    @OneToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST})
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
+            inverseJoinColumns = @JoinColumn(name = "role_id"),
+            uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role_id"})
     )
-    private Set<Role> role = new HashSet<>(Collections.singleton(new Role("user")));
+    private Set<Role> role = new HashSet<>();
 
     @JsonProperty("role")  // This will override the default "roles" field with a single "role"
     public String getSingleRole() {
@@ -60,16 +62,22 @@ public class UserCredential {
     private String gender;
 
     public void updateRole(String newRole, RoleRepository roleRepository) {
+        if (newRole == null || newRole.trim().isEmpty()) {
+            throw new IllegalArgumentException("Role cannot be null or empty.");
+        }
+
+        // Normalize the role (e.g., to lowercase)
+        String normalizedRole = newRole.trim().toLowerCase();
+
         // Clear existing roles
         this.role.clear();
 
-        // Find the role in the repository, or create a new one if it doesn't exist
-        Role roleEntity = roleRepository.findByRole(newRole)
-                .orElseGet(() -> roleRepository.save(new Role(newRole)));  // Create and save the role if not found
+        // Check if the role already exists in the repository
+        Role existingRole = roleRepository.findByRole(normalizedRole)
+                .orElseGet(() -> roleRepository.save(new Role(normalizedRole)));
 
-        // Add the new role to the user's set of roles
-        this.role.add(roleEntity);
-
+        // Assign the existing or newly created role
+        this.role.add(existingRole);
     }
     private String accountStatus = "public";
 
